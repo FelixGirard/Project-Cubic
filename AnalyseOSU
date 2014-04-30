@@ -4,7 +4,9 @@ tldr; 	Temps != temps d'apparition	temps == temps de click optimal
 		T est weird aussi, L=slider droit, P=Slider petite courbe, B=slider grosse courbe. (pas trop sur)
 		c = Création de combo... If(c==1){Première note de la map OU Poursuite du combo actuel} If(c==5){Début d'un nouveau combo}
 		Probablement aucune autre valeur possible pour c.
-
+		Dans un spiner, 12 est toujours là et le spiner est toujours au centre de la map.
+		On a le temps de début et le temps de fin d'un spiner.
+		256,192,4500,5,0,(0:0:0:0:) La valeur entre parenthèse est probablement facultative.
 
 
 !!NEWS!! : 
@@ -67,10 +69,11 @@ x  ,y  ,t   ,c,?,?:?:?:?: //La variable 'c' change... 1=suite d'un combo, 5=nouv
 //Analyse d'un slide droit
 
 0,192,7000,6,0,L|448:192|416:192,2,420
-x,y  ,t   ,?,?,T|xA :yA |xFi:yFi,r,l
+x,y  ,t   ,i,?,T|xA :yA |xFi:yFi,r,l
 x=position première en x
 y=position première en y
 t=temps de click
+i=intervalles de temps (incertains)
 T=Type
 xA=x du point d'axe de rotation en x
 yA=y du point d'axe de rotation en y
@@ -82,13 +85,34 @@ l=longueur (pas entièrement compris)
 51,285,19000,2,0,L|318:128,1,280 //Autre slider droit pour fins de comparaison
 
 
+//Analyse d'un Spin
+
+256,192,27500,12,0,29000,0:0:0:0:
+256,192,6000,12,0,6500,0:0:0:0:
+x  ,y  ,t   ,T ,?,tfin,?:?:?:?:
+
+x=position en x (nécessairement 256)
+y=position en y (nécessairement 192)
+t=temps de départ et d'apparition du spin
+T=Type (Si la valeur n'est pas 12, la beatmap plante.)
+tfin=temps où le spin disparaît, donc se termine.
+
+//Un spin est toujours au centre de la carte, donc toujours à (256,192).
+//La valeur "12" est toujours présente après le temps. Cela doit définir le type de l'objet en tant que spiner.
+//t et tfin sont les deux valeurs de temps du spin, t étant le début, tfin étant la fin.
 
 
+!Corrélations!
 
+256,192,6000,12,0,6500,0:0:0:0: //Spiner normal
+256,0,500,1,0,0:0:0:0: //Point normal
 
-
-
-
+,0:0:0:0: //Cette partie est toujours présente dans les points et les spiners et est généralement toute à zéro (je n'ai pas été capable de les changer par l'éditeur de map.)
+		  //Dans des beatmaps comme "The Big Black", les points simples n'ont pas la partie ",0:0:0:0". C'est juste 256,0,500,1,0.
+		  //J'en déduis que c'est un ajout récent à l'éditeur de maps, puisque les maps anciennes ne l'ont pas et que les nouvelles oui.
+		  //Autre preuve que c'est nouveau, lorsque l'on essaye d'éditer une ancienne map, cette partie aparraît après la première sauvegarde.
+		  //Elle est donc probablement facultive ou du moins sans impact au niveau du gameplay.
+		  //Je crois que c'est un modificateur visuel, cependant je n'ai pas de preuves réelles.
 
 
 
