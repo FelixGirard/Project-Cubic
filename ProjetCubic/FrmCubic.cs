@@ -58,14 +58,14 @@ namespace ProjetCubic
         #region Events
         private void HandleHotkey()
         {
+   
             if (lblPathChanson.Text != "")
             {
-                //this.Hide();ww
+                //this.Hide();
                 MouseHook.Start();
                 MouseHook.MouseAction += new EventHandler(MouseEvent);
             }
-            else
-            { }
+
         }
 
         private void MouseEvent(object sender, EventArgs e)
