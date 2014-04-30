@@ -30,6 +30,7 @@
         {
             this.opfParcourirChanson = new System.Windows.Forms.OpenFileDialog();
             this.btnParcourir = new System.Windows.Forms.Button();
+            this.lblPathChanson = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // opfParcourirChanson
@@ -46,17 +47,27 @@
             this.btnParcourir.UseVisualStyleBackColor = true;
             this.btnParcourir.Click += new System.EventHandler(this.btnParcourir_Click);
             // 
+            // lblPathChanson
+            // 
+            this.lblPathChanson.AutoSize = true;
+            this.lblPathChanson.Location = new System.Drawing.Point(35, 92);
+            this.lblPathChanson.Name = "lblPathChanson";
+            this.lblPathChanson.Size = new System.Drawing.Size(0, 13);
+            this.lblPathChanson.TabIndex = 1;
+            // 
             // FrmCubic
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(284, 262);
+            this.Controls.Add(this.lblPathChanson);
             this.Controls.Add(this.btnParcourir);
             this.Name = "FrmCubic";
             this.ShowIcon = false;
             this.Text = "Cubic Project";
             this.Load += new System.EventHandler(this.Form1_Load);
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -64,6 +75,7 @@
 
         private System.Windows.Forms.OpenFileDialog opfParcourirChanson;
         private System.Windows.Forms.Button btnParcourir;
+        private System.Windows.Forms.Label lblPathChanson;
     }
 }
 
