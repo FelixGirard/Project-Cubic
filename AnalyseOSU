@@ -1,2 +1,131 @@
-0,192,70000,6,0,L|448:192|416:192,2,420
-x,y  ,temps,?,?,t|xA :yA |xFi:yFi,r,longueur
+
+tldr; 	Temps != temps d'apparition	temps == temps de click optimal
+		i est bizzare, genre really.
+		T est weird aussi, L=slider droit, P=Slider petite courbe, B=slider grosse courbe. (pas trop sur)
+		c = Création de combo... If(c==1){Première note de la map OU Poursuite du combo actuel} If(c==5){Début d'un nouveau combo}
+		Probablement aucune autre valeur possible pour c.
+		Dans un spiner, 12 est toujours là et le spiner est toujours au centre de la map.
+		On a le temps de début et le temps de fin d'un spiner.
+		256,192,4500,5,0,(0:0:0:0:) La valeur entre parenthèse est probablement facultative.
+
+
+!!NEWS!! : 
+Le temps n'est pas simplement le temps d'apparition. C'est plutôt le temps OPTIMAL pour cliquer sur la note.
+Le temps d'apparition de la note (le moment où elle devient visible sur la map) est toujours (en ce qui concerne notre map de test)
+une seconde AVANT le temps de click. Le temps où la note disparaît (le moment où elle n'est plus visible, donc le dernier moment avant que l'on
+puisse cliquer dessus) est une seconde APRÈS le temps de click.
+
+
+
+//Analyse d'un slide courbe.
+
+0,192,11000,6,0,B|448:192|384:96,1,420
+x,y  ,temps,i,?,t|xA :yA |xFi:yFi,r,longueur
+x=position première en x
+y=position première en y
+t=temps de click
+i=intervalles de temps ( très incertain)
+T=Type
+xA=x du point d'axe de rotation en x
+yA=y du point d'axe de rotation en y
+xFi=position finale en x
+yFi=position finale en y
+r=aller-retour (2=aller-retour, 1=aller, etc.)
+l=longueur (pas entièrement compris)
+
+//Le 'i' représenterait le temps total de la note (y*500ms). Cependant, c'est vrai uniquement pour les sliders droits.
+//Dans le cas d'un slider courbe de type 'B', ce sera plutôt ((y/2)*500ms).
+
+32,192,20500,2,0,P|320:192|352:160,1,280 //Autre slider courbe, plus petit que l'autre
+//Ici, le type est 'P' et l'intervalle est juste (y*500ms)
+
+0,192,25500,2,0,B|416:192|288:32,1,420 //Autre slider courbe de type 'B'
+//Ici, 'i' ne fait aucun lien avec l'intervalle de temps qui est de 3.
+//J'en déduis donc que 'i' dépend fortement du type et que, dans le premier cas, ((y/2)*500ms) n'était que du hasard.
+
+//Cependant, l'existance de différents type de sliders courbes reste un mystère (P et B). Dans le cas P, c'est une courbe moins prononcée.
+//Pour B, c'est une courbe plus forte. Le point de l'axe de rotation est généralement plus loin.
+
+//Analyse d'un point simple
+
+0,0,0,1,0,0:0:0:0: //Premier point d'une beatmap
+x,y,t,c,?,?:?:?:?:
+x=position en x
+y=position en y
+t=temps de click
+c=Combo (1=suite du combo ou première note de la map, 5=début d'un nouveau combo)
+256,0,500,1,0,0:0:0:0: //Deuxième point
+
+256,192,4500,5,0,0:0:0:0: //Point autre appliqué avec un nouveau combo
+x  ,y  ,t   ,c,?,?:?:?:?: //La variable 'c' change... 1=suite d'un combo, 5=nouveau combo
+
+//La variable 'c' n'a probablement pas d'autres valeurs possibles, exceptés 1 et 5. (Après avoir essayé de 1 à 10)
+
+//Les autres chiffres inconnus ont probablement un lien avec le temps de "click" sur le point.
+//Aucun lien trouvé avec le "Distance Snap".
+//Aucun changement en lien avec le "lock" en affichage tableau.
+//Après avoir changé tous les nombres un après l'autre pour des valeurs entre 1 et 5000, aucun changement remarqué.
+
+//Analyse d'un slide droit
+
+0,192,7000,6,0,L|448:192|416:192,2,420
+x,y  ,t   ,i,?,T|xA :yA |xFi:yFi,r,l
+x=position première en x
+y=position première en y
+t=temps de click
+i=intervalles de temps (incertains)
+T=Type
+xA=x du point d'axe de rotation en x
+yA=y du point d'axe de rotation en y
+xFi=position finale en x
+yFi=position finale en y
+r=aller-retour (2=aller-retour, 1=aller, etc.)
+l=longueur (pas entièrement compris)
+
+51,285,19000,2,0,L|318:128,1,280 //Autre slider droit pour fins de comparaison
+
+
+//Analyse d'un Spin
+
+256,192,27500,12,0,29000,0:0:0:0:
+256,192,6000,12,0,6500,0:0:0:0:
+x  ,y  ,t   ,T ,?,tfin,?:?:?:?:
+
+x=position en x (nécessairement 256)
+y=position en y (nécessairement 192)
+t=temps de départ et d'apparition du spin
+T=Type (Si la valeur n'est pas 12, la beatmap plante.)
+tfin=temps où le spin disparaît, donc se termine.
+
+//Un spin est toujours au centre de la carte, donc toujours à (256,192).
+//La valeur "12" est toujours présente après le temps. Cela doit définir le type de l'objet en tant que spiner.
+//t et tfin sont les deux valeurs de temps du spin, t étant le début, tfin étant la fin.
+
+
+!Corrélations!
+
+256,192,6000,12,0,6500,0:0:0:0: //Spiner normal
+256,0,500,1,0,0:0:0:0: //Point normal
+
+,0:0:0:0: //Cette partie est toujours présente dans les points et les spiners et est généralement toute à zéro (je n'ai pas été capable de les changer par l'éditeur de map.)
+		  //Dans des beatmaps comme "The Big Black", les points simples n'ont pas la partie ",0:0:0:0". C'est juste 256,0,500,1,0.
+		  //J'en déduis que c'est un ajout récent à l'éditeur de maps, puisque les maps anciennes ne l'ont pas et que les nouvelles oui.
+		  //Autre preuve que c'est nouveau, lorsque l'on essaye d'éditer une ancienne map, cette partie aparraît après la première sauvegarde.
+		  //Elle est donc probablement facultive ou du moins sans impact au niveau du gameplay.
+		  //Je crois que c'est un modificateur visuel, cependant je n'ai pas de preuves réelles.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
