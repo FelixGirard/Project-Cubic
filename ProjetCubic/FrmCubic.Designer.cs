@@ -31,6 +31,7 @@
             this.opfParcourirChanson = new System.Windows.Forms.OpenFileDialog();
             this.btnParcourir = new System.Windows.Forms.Button();
             this.lblPathChanson = new System.Windows.Forms.Label();
+            this.lblTempschanson = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // opfParcourirChanson
@@ -59,11 +60,21 @@
             this.lblPathChanson.Size = new System.Drawing.Size(0, 13);
             this.lblPathChanson.TabIndex = 1;
             // 
+            // lblTempschanson
+            // 
+            this.lblTempschanson.AutoSize = true;
+            this.lblTempschanson.Location = new System.Drawing.Point(26, 101);
+            this.lblTempschanson.MaximumSize = new System.Drawing.Size(350, 0);
+            this.lblTempschanson.Name = "lblTempschanson";
+            this.lblTempschanson.Size = new System.Drawing.Size(0, 13);
+            this.lblTempschanson.TabIndex = 2;
+            // 
             // FrmCubic
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(518, 123);
+            this.Controls.Add(this.lblTempschanson);
             this.Controls.Add(this.lblPathChanson);
             this.Controls.Add(this.btnParcourir);
             this.Name = "FrmCubic";
@@ -79,6 +90,7 @@
         private System.Windows.Forms.OpenFileDialog opfParcourirChanson;
         private System.Windows.Forms.Button btnParcourir;
         private System.Windows.Forms.Label lblPathChanson;
+        private System.Windows.Forms.Label lblTempschanson;
     }
 }
 

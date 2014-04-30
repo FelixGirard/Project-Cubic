@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
 using System.IO;
+using System.Diagnostics;
 
 namespace ProjetCubic
 {
@@ -65,7 +66,7 @@ namespace ProjetCubic
                 MouseHook.Start();
                 MouseHook.MouseAction += new EventHandler(MouseEvent);
             }
-
+            SendKeys.Send("s");
         }
 
         private void MouseEvent(object sender, EventArgs e)
@@ -73,11 +74,13 @@ namespace ProjetCubic
             MouseHook.stop();
             _lPremiereNote = _lstEvents.ElementAt(_iIndexEvent++).iTemps;
             _lTempsDepart = DateTime.Now.Ticks / 10000;
-            while (DateTime.Now.Ticks / 10000 - _lTempsDepart <= _lstEvents.Max(ev => ev.iTemps))
+            long lMax = _lstEvents.Max(ev => ev.iTemps);
+            while (DateTime.Now.Ticks / 10000 - _lTempsDepart <= lMax)
             {
                 _lTempsDeChanson = DateTime.Now.Ticks / 10000 - _lTempsDepart + _lPremiereNote;
-                if (_iIndexEvent < _iNombreEvent && _lstEvents.ElementAt(_iIndexEvent).iTemps == _lTempsDeChanson)
+                if (_iIndexEvent < _iNombreEvent && _lstEvents.ElementAt(_iIndexEvent).iTemps <= _lTempsDeChanson + 4)
                 {
+                    //Debug.Write(_lstEvents.ElementAt(_iIndexEvent).iTemps + "=" + _lTempsDeChanson.ToString() + "   ");
                     _iIndexEvent++;
                     DoMouseClick();
                 }
@@ -85,6 +88,7 @@ namespace ProjetCubic
                 {
                     base.Close();
                 }
+                //Debug.Write(_lTempsDeChanson.ToString() + "\n");
             }
         }
 
