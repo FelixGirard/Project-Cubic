@@ -44,6 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Constants.cs" />
     <Compile Include="Event.cs" />
     <Compile Include="FrmCubic.cs">
       <SubType>Form</SubType>
@@ -51,6 +52,8 @@
     <Compile Include="FrmCubic.Designer.cs">
       <DependentUpon>FrmCubic.cs</DependentUpon>
     </Compile>
+    <Compile Include="KeyHandler.cs" />
+    <Compile Include="MouseHook.cs" />
     <Compile Include="Point.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

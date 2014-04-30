@@ -7,6 +7,11 @@ namespace ProjetCubic
 {
     public class Spin : Event
     {
+        public Spin(int iTemp, int iPositionX, int iPositionY)
+            : base(iTemp, iPositionX, iPositionY)
+        {
+
+        }
         public int iDuree
         {
             get

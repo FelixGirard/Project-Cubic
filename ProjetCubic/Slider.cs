@@ -7,6 +7,11 @@ namespace ProjetCubic
 {
     public class Slider : Event
     {
+        public Slider(int iTemp, int iPositionX, int iPositionY)
+            : base(iTemp, iPositionX, iPositionY)
+        {
+
+        }
         public List<Point> Positions
         {
             get

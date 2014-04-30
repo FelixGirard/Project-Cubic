@@ -6,6 +6,7 @@ using System.Windows.Forms;
 
 namespace ProjetCubic
 {
+
     static class Program
     {
         /// <summary>

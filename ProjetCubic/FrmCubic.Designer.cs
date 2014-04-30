@@ -35,11 +35,14 @@
             // 
             // opfParcourirChanson
             // 
+            this.opfParcourirChanson.DefaultExt = "osu";
             this.opfParcourirChanson.FileName = "fichier osu";
+            this.opfParcourirChanson.Filter = "FICHIER OSU|*.osu";
+            this.opfParcourirChanson.Title = "Sélectionner le fichier de chanson";
             // 
             // btnParcourir
             // 
-            this.btnParcourir.Location = new System.Drawing.Point(162, 87);
+            this.btnParcourir.Location = new System.Drawing.Point(401, 60);
             this.btnParcourir.Name = "btnParcourir";
             this.btnParcourir.Size = new System.Drawing.Size(75, 23);
             this.btnParcourir.TabIndex = 0;
@@ -50,7 +53,8 @@
             // lblPathChanson
             // 
             this.lblPathChanson.AutoSize = true;
-            this.lblPathChanson.Location = new System.Drawing.Point(35, 92);
+            this.lblPathChanson.Location = new System.Drawing.Point(26, 33);
+            this.lblPathChanson.MaximumSize = new System.Drawing.Size(350, 0);
             this.lblPathChanson.Name = "lblPathChanson";
             this.lblPathChanson.Size = new System.Drawing.Size(0, 13);
             this.lblPathChanson.TabIndex = 1;
@@ -59,13 +63,12 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(284, 262);
+            this.ClientSize = new System.Drawing.Size(518, 123);
             this.Controls.Add(this.lblPathChanson);
             this.Controls.Add(this.btnParcourir);
             this.Name = "FrmCubic";
             this.ShowIcon = false;
             this.Text = "Cubic Project";
-            this.Load += new System.EventHandler(this.Form1_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 
