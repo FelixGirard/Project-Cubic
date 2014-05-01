@@ -120,7 +120,6 @@ namespace ProjetCubic
         {
             MouseHook.stop();
             _lPremiereNote = _lstEvents.ElementAt(_iIndexEvent++).iTemps;
-            _lTempsDepart = DateTime.Now.Ticks / 10000;
             _lMax = _lstEvents.Max(ev => ev.iTemps);
             bw.RunWorkerAsync();
         }
