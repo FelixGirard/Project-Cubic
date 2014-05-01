@@ -66,7 +66,6 @@ namespace ProjetCubic
                 MouseHook.Start();
                 MouseHook.MouseAction += new EventHandler(MouseEvent);
             }
-            SendKeys.Send("s");
         }
 
         private void MouseEvent(object sender, EventArgs e)
