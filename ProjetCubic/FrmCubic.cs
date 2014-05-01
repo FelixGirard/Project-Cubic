@@ -17,8 +17,9 @@ namespace ProjetCubic
     {
         List<Event> _lstEvents;
         private KeyHandler Keyhandler;
-        private int _iIndexEvent,_iNombreEvent;
-        private long _lTempsDeChanson, _lTempsDepart,_lPremiereNote;
+        private int _iIndexEvent, _iNombreEvent, _lMax;
+        private long _lTempsDeChanson, _lTempsDepart, _lPremiereNote;
+        private BackgroundWorker bw = new BackgroundWorker();
         public FrmCubic()
         {
             InitializeComponent();
@@ -26,6 +27,51 @@ namespace ProjetCubic
             _iIndexEvent = 0;
             Keyhandler = new KeyHandler(Keys.S, this);
             Keyhandler.Register();
+
+            bw.WorkerReportsProgress = true;
+            bw.WorkerSupportsCancellation = true;
+            bw.DoWork += new DoWorkEventHandler(bw_DoWork);
+            bw.ProgressChanged += new ProgressChangedEventHandler(bw_ProgressChanged);
+            bw.RunWorkerCompleted += new RunWorkerCompletedEventHandler(bw_RunWorkerCompleted);
+        }
+
+        private void bw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            MessageBox.Show("FINISHED");
+        }
+
+        private void bw_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void bw_DoWork(object sender, DoWorkEventArgs e)
+        {
+            BackgroundWorker worker = sender as BackgroundWorker;
+            _lTempsDepart = DateTime.Now.Ticks / 10000;
+            while (DateTime.Now.Ticks / 10000 - _lTempsDepart <= _lMax)
+            {
+                if ((worker.CancellationPending == true))
+                {
+                    e.Cancel = true;
+                    break;
+                }
+                else
+                {
+                    _lTempsDeChanson = DateTime.Now.Ticks / 10000 - _lTempsDepart + _lPremiereNote;
+                    if (_iIndexEvent < _iNombreEvent && _lstEvents.ElementAt(_iIndexEvent).iTemps <= _lTempsDeChanson + 3)
+                    {
+                        Debug.Write(_lstEvents.ElementAt(_iIndexEvent).iTemps + "=" + _lTempsDeChanson.ToString() + "   ");
+                        _iIndexEvent++;
+                        DoMouseClick();
+                    }
+                    else if (_iIndexEvent > _iNombreEvent)
+                    {
+                        this.Close();
+                    }
+                    Debug.Write(_lTempsDeChanson.ToString() + "\n");
+                }
+            }
         }
         #region keylog
         protected override void WndProc(ref Message m)
@@ -38,29 +84,31 @@ namespace ProjetCubic
 
         #region mouselog
         [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall)]
-        public static extern void mouse_event(long dwFlags, long dx, long dy, long cButtons, long dwExtraInfo);
+        public static extern void mouse_event(uint dwFlags, uint dx, uint dy, uint cButtons, int dwExtraInfo);
 
-        private const int MOUSEEVENTF_LEFTDOWN = 0x02;
-        private const int MOUSEEVENTF_LEFTUP = 0x04;
-        private const int MOUSEEVENTF_RIGHTDOWN = 0x08;
-        private const int MOUSEEVENTF_RIGHTUP = 0x10;
+        private const uint MOUSEEVENTF_LEFTDOWN = 0x02;
+        private const uint MOUSEEVENTF_LEFTUP = 0x04;
+        private const uint MOUSEEVENTF_RIGHTDOWN = 0x08;
+        private const uint MOUSEEVENTF_RIGHTUP = 0x10;
 
         public void DoMouseClick()
         {
-           /* //Call the imported function with the cursor's current position
-            int X = Cursor.Position.X;
-            int Y = Cursor.Position.Y;
-            mouse_event(MOUSEEVENTF_LEFTDOWN, X, Y, 0, 0);
-            mouse_event(MOUSEEVENTF_LEFTUP, X, Y, 0, 0);*/
-            SendKeys.Send("w");
+             //Call the imported function with the cursor's current position
+             uint X = (uint)Cursor.Position.X;
+             uint Y = (uint)Cursor.Position.Y;
+             /*mouse_event(MOUSEEVENTF_LEFTDOWN, X, Y, 0, 0);
+             System.Threading.Thread.Sleep(1);
+             mouse_event(MOUSEEVENTF_LEFTUP, X, Y, 0, 0);*/
+            SendKeys.SendWait("w");
             //SendKeys.Send("w");
         }
         #endregion
         #region Events
         private void HandleHotkey()
         {
-   
-            if (lblPathChanson.Text != "")
+            if (bw.IsBusy)
+                bw.CancelAsync();
+            else if (lblPathChanson.Text != "")
             {
                 //this.Hide();
                 MouseHook.Start();
@@ -73,22 +121,8 @@ namespace ProjetCubic
             MouseHook.stop();
             _lPremiereNote = _lstEvents.ElementAt(_iIndexEvent++).iTemps;
             _lTempsDepart = DateTime.Now.Ticks / 10000;
-            long lMax = _lstEvents.Max(ev => ev.iTemps);
-            while (DateTime.Now.Ticks / 10000 - _lTempsDepart <= lMax)
-            {
-                _lTempsDeChanson = DateTime.Now.Ticks / 10000 - _lTempsDepart + _lPremiereNote;
-                if (_iIndexEvent < _iNombreEvent && _lstEvents.ElementAt(_iIndexEvent).iTemps <= _lTempsDeChanson + 4)
-                {
-                    //Debug.Write(_lstEvents.ElementAt(_iIndexEvent).iTemps + "=" + _lTempsDeChanson.ToString() + "   ");
-                    _iIndexEvent++;
-                    DoMouseClick();
-                }
-                else if (_iIndexEvent > _iNombreEvent)
-                {
-                    base.Close();
-                }
-                //Debug.Write(_lTempsDeChanson.ToString() + "\n");
-            }
+            _lMax = _lstEvents.Max(ev => ev.iTemps);
+            bw.RunWorkerAsync();
         }
 
         private void btnParcourir_Click(object sender, EventArgs e)
