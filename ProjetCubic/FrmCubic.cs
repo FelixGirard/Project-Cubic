@@ -37,7 +37,7 @@ namespace ProjetCubic
 
         private void bw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            MessageBox.Show("FINISHED");
+            //MessageBox.Show("FINISHED");
         }
 
         private void bw_ProgressChanged(object sender, ProgressChangedEventArgs e)
@@ -61,7 +61,7 @@ namespace ProjetCubic
                     _lTempsDeChanson = DateTime.Now.Ticks / 10000 - _lTempsDepart + _lPremiereNote;
                     if (_iIndexEvent < _iNombreEvent && _lstEvents.ElementAt(_iIndexEvent).iTemps <= _lTempsDeChanson + 3)
                     {
-                        Debug.Write(_lstEvents.ElementAt(_iIndexEvent).iTemps + "=" + _lTempsDeChanson.ToString() + "   ");
+                        //Debug.Write(_lstEvents.ElementAt(_iIndexEvent).iTemps + "=" + _lTempsDeChanson.ToString() + "   ");
                         _iIndexEvent++;
                         DoMouseClick();
                     }
@@ -69,7 +69,7 @@ namespace ProjetCubic
                     {
                         this.Close();
                     }
-                    Debug.Write(_lTempsDeChanson.ToString() + "\n");
+                    //Debug.Write(_lTempsDeChanson.ToString() + "\n");
                 }
             }
         }
@@ -93,14 +93,12 @@ namespace ProjetCubic
 
         public void DoMouseClick()
         {
-             //Call the imported function with the cursor's current position
              uint X = (uint)Cursor.Position.X;
              uint Y = (uint)Cursor.Position.Y;
-             /*mouse_event(MOUSEEVENTF_LEFTDOWN, X, Y, 0, 0);
-             System.Threading.Thread.Sleep(1);
-             mouse_event(MOUSEEVENTF_LEFTUP, X, Y, 0, 0);*/
-            SendKeys.SendWait("w");
-            //SendKeys.Send("w");
+             mouse_event(MOUSEEVENTF_LEFTDOWN, X, Y, 0, 0);
+             System.Threading.Thread.Sleep(5);
+             mouse_event(MOUSEEVENTF_LEFTUP, X, Y, 0, 0);
+            //SendKeys.SendWait("w");
         }
         #endregion
         #region Events
@@ -119,6 +117,8 @@ namespace ProjetCubic
         private void MouseEvent(object sender, EventArgs e)
         {
             MouseHook.stop();
+            _lTempsDeChanson = 0;
+            _iIndexEvent = 0;
             _lPremiereNote = _lstEvents.ElementAt(_iIndexEvent++).iTemps;
             _lMax = _lstEvents.Max(ev => ev.iTemps);
             bw.RunWorkerAsync();
@@ -136,6 +136,7 @@ namespace ProjetCubic
         {
             if (lblPathChanson.Text != "" && File.Exists(lblPathChanson.Text))
             {
+                _lstEvents.Clear();
                 using (StreamReader sr = File.OpenText(lblPathChanson.Text))
                 {
                     bool bEventSectionStarted = false;
