@@ -58,7 +58,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Slider.cs" />
-    <Compile Include="Spin.cs" />
+    <Compile Include="Spiner.cs" />
     <EmbeddedResource Include="FrmCubic.resx">
       <DependentUpon>FrmCubic.cs</DependentUpon>
     </EmbeddedResource>

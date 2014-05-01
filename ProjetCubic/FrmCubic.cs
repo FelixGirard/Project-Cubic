@@ -17,6 +17,7 @@ namespace ProjetCubic
     {
         List<Event> _lstEvents;
         private KeyHandler Keyhandler;
+        private double _dSliderVelocity;
         private int _iIndexEvent, _iNombreEvent, _lMax;
         private long _lTempsDeChanson, _lTempsDepart, _lPremiereNote;
         private BackgroundWorker bw = new BackgroundWorker();
@@ -63,7 +64,24 @@ namespace ProjetCubic
                     {
                         //Debug.Write(_lstEvents.ElementAt(_iIndexEvent).iTemps + "=" + _lTempsDeChanson.ToString() + "   ");
                         _iIndexEvent++;
-                        DoMouseClick();
+                        switch (_lstEvents.ElementAt(_iIndexEvent).GetType().ToString())
+                        {
+                            case "ProjetCubic.Point":
+                                Point point = (Point)_lstEvents[_iIndexEvent];
+                                point.ClickOnMousePosition();
+                                break;
+                            case "ProjetCubic.Slider":
+                                Slider slider = (Slider)_lstEvents[_iIndexEvent];
+                                slider.ClickOnMousePosition();
+                                break;
+                            case "ProjetCubic.Spiner":
+                                Spiner spiner = (Spiner)_lstEvents[_iIndexEvent];
+                                spiner.ClickOnMousePosition();
+                                break;
+                            default:
+                                _lstEvents.ElementAt(_iIndexEvent).ClickOnMousePosition();
+                                break;
+                        }
                     }
                     else if (_iIndexEvent > _iNombreEvent)
                     {
@@ -86,29 +104,23 @@ namespace ProjetCubic
         [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall)]
         public static extern void mouse_event(uint dwFlags, uint dx, uint dy, uint cButtons, int dwExtraInfo);
 
-        private const uint MOUSEEVENTF_LEFTDOWN = 0x02;
-        private const uint MOUSEEVENTF_LEFTUP = 0x04;
-        private const uint MOUSEEVENTF_RIGHTDOWN = 0x08;
-        private const uint MOUSEEVENTF_RIGHTUP = 0x10;
+        public const uint MOUSEEVENTF_LEFTDOWN = 0x02;
+        public const uint MOUSEEVENTF_LEFTUP = 0x04;
+        public const uint MOUSEEVENTF_RIGHTDOWN = 0x08;
+        public const uint MOUSEEVENTF_RIGHTUP = 0x10;
 
-        public void DoMouseClick()
-        {
-             uint X = (uint)Cursor.Position.X;
-             uint Y = (uint)Cursor.Position.Y;
-             mouse_event(MOUSEEVENTF_LEFTDOWN, X, Y, 0, 0);
-             System.Threading.Thread.Sleep(5);
-             mouse_event(MOUSEEVENTF_LEFTUP, X, Y, 0, 0);
-            //SendKeys.SendWait("w");
-        }
         #endregion
         #region Events
         private void HandleHotkey()
         {
             if (bw.IsBusy)
+            {
                 bw.CancelAsync();
+                this.Show();
+            }
             else if (lblPathChanson.Text != "")
             {
-                //this.Hide();
+                this.Hide();
                 MouseHook.Start();
                 MouseHook.MouseAction += new EventHandler(MouseEvent);
             }
@@ -147,6 +159,8 @@ namespace ProjetCubic
                         {
                             _lstEvents.Add(EventDeString(sLigne));
                         }
+                        else if (sLigne.StartsWith("SliderMultiplier:"))
+                            double.TryParse(sLigne.Substring(sLigne.IndexOf(':') +1 , sLigne.Length - sLigne.IndexOf(':') -1), out _dSliderVelocity);
                         if (sLigne == "[HitObjects]")
                             bEventSectionStarted = true;
                     }
@@ -157,8 +171,31 @@ namespace ProjetCubic
         }
         private Event EventDeString(string sLigne)
         {
-            string[] EventParams = sLigne.Split(',');
-            Event evenement = new Event(Convert.ToInt32(EventParams[0]), Convert.ToInt32(EventParams[1]), Convert.ToInt32(EventParams[2]));
+            string[] sEventParams = sLigne.Split(',');
+            int[] iEventParams = new int[sEventParams.Count()];
+            int iCPT = 0;
+            foreach (string param in sEventParams)
+            {
+                int.TryParse(sEventParams[iCPT], out iEventParams[iCPT++]);
+            }
+            Event evenement = new Event();
+            switch (iEventParams[3])
+            {
+                case 1:
+                case 5:
+                    evenement = new Point(iEventParams[0], iEventParams[1], iEventParams[2]);
+                    break;
+                case 2:
+                case 6:
+                    evenement = new Slider(iEventParams[0], iEventParams[1], iEventParams[2], (byte)iEventParams[6], iEventParams[7]);
+                    break;
+                case 12:
+                    evenement = new Spiner(iEventParams[0], iEventParams[1], iEventParams[2], iEventParams[5]);
+                    break;
+                default:
+                    evenement = new Event(iEventParams[0], iEventParams[1], iEventParams[2]);
+                    break;
+            }
             return evenement;
         }
         private void TrierListeOrdre()

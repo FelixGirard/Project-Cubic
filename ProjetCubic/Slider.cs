@@ -2,15 +2,19 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Windows.Forms;
 
 namespace ProjetCubic
 {
     public class Slider : Event
     {
-        public Slider(int iTemp, int iPositionX, int iPositionY)
+        private int _iLongueur;
+        private byte _byAllerRetour;
+        public Slider(int iTemp, int iPositionX, int iPositionY, byte byAllerRetour, int iLongueur)
             : base(iTemp, iPositionX, iPositionY)
         {
-
+            _iLongueur = iLongueur;
+            _byAllerRetour = byAllerRetour;
         }
         public List<Point> Positions
         {
@@ -23,26 +27,42 @@ namespace ProjetCubic
             }
         }
 
-        public int iDuree
+        public int Longueur
         {
             get
             {
-                throw new System.NotImplementedException();
+                return _iLongueur;
             }
             set
             {
+                _iLongueur = value;
             }
         }
 
-        public byte byAllerRetour
+        public byte AllerRetour
         {
             get
             {
-                throw new System.NotImplementedException();
+                return _byAllerRetour;
             }
             set
             {
+                _byAllerRetour = value;
             }
+        }
+        public override void ClickOnMousePosition()
+        {
+            uint X = (uint)Cursor.Position.X;
+            uint Y = (uint)Cursor.Position.Y;
+            FrmCubic.mouse_event(FrmCubic.MOUSEEVENTF_LEFTDOWN, X, Y, 0, 0);
+            System.Threading.Thread.Sleep(_iLongueur * _byAllerRetour);
+            FrmCubic.mouse_event(FrmCubic.MOUSEEVENTF_LEFTUP, X, Y, 0, 0);
+        }
+        public override void ClickOnMyPosition()
+        {
+            FrmCubic.mouse_event(FrmCubic.MOUSEEVENTF_LEFTDOWN, (uint)this.PositionX, (uint)this.PositionY, 0, 0);
+            System.Threading.Thread.Sleep(_iLongueur * _byAllerRetour);
+            FrmCubic.mouse_event(FrmCubic.MOUSEEVENTF_LEFTUP, (uint)this.PositionX, (uint)this.PositionY, 0, 0);
         }
     }
 }
