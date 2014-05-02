@@ -1,3 +1,6 @@
+analyse d'un timing point :
+0,600,4,2,0,100,1,0
+offset,60000/bpm,x/4(temps/mesure),2(sample),0?,100(%volume),1?,style
 
 tldr; 	Temps != temps d'apparition	temps == temps de click optimal
 		i est bizzare, genre really.
