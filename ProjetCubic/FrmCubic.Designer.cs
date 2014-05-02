@@ -32,6 +32,11 @@
             this.btnParcourir = new System.Windows.Forms.Button();
             this.lblPathChanson = new System.Windows.Forms.Label();
             this.lblTempschanson = new System.Windows.Forms.Label();
+            this.ssBarreStatut = new System.Windows.Forms.StatusStrip();
+            this.tslblStatut = new System.Windows.Forms.ToolStripStatusLabel();
+            this.opfParcourirDossierChanson = new System.Windows.Forms.FolderBrowserDialog();
+            this.button1 = new System.Windows.Forms.Button();
+            this.ssBarreStatut.SuspendLayout();
             this.SuspendLayout();
             // 
             // opfParcourirChanson
@@ -69,17 +74,46 @@
             this.lblTempschanson.Size = new System.Drawing.Size(0, 13);
             this.lblTempschanson.TabIndex = 2;
             // 
+            // ssBarreStatut
+            // 
+            this.ssBarreStatut.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.tslblStatut});
+            this.ssBarreStatut.Location = new System.Drawing.Point(0, 101);
+            this.ssBarreStatut.Name = "ssBarreStatut";
+            this.ssBarreStatut.Size = new System.Drawing.Size(518, 22);
+            this.ssBarreStatut.TabIndex = 3;
+            // 
+            // tslblStatut
+            // 
+            this.tslblStatut.Name = "tslblStatut";
+            this.tslblStatut.Size = new System.Drawing.Size(52, 17);
+            this.tslblStatut.Text = "Bonjour,";
+            // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(401, 33);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(75, 23);
+            this.button1.TabIndex = 4;
+            this.button1.Text = "Parcourir...";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
             // FrmCubic
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(518, 123);
+            this.Controls.Add(this.button1);
+            this.Controls.Add(this.ssBarreStatut);
             this.Controls.Add(this.lblTempschanson);
             this.Controls.Add(this.lblPathChanson);
             this.Controls.Add(this.btnParcourir);
             this.Name = "FrmCubic";
             this.ShowIcon = false;
             this.Text = "Cubic Project";
+            this.ssBarreStatut.ResumeLayout(false);
+            this.ssBarreStatut.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -91,6 +125,10 @@
         private System.Windows.Forms.Button btnParcourir;
         private System.Windows.Forms.Label lblPathChanson;
         private System.Windows.Forms.Label lblTempschanson;
+        private System.Windows.Forms.StatusStrip ssBarreStatut;
+        private System.Windows.Forms.ToolStripStatusLabel tslblStatut;
+        private System.Windows.Forms.FolderBrowserDialog opfParcourirDossierChanson;
+        private System.Windows.Forms.Button button1;
     }
 }
 

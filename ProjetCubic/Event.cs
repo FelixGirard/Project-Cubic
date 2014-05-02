@@ -59,17 +59,9 @@ namespace ProjetCubic
         }
         public virtual void ClickOnMousePosition()
         {
-            uint X = (uint)Cursor.Position.X;
-            uint Y = (uint)Cursor.Position.Y;
-            FrmCubic.mouse_event(FrmCubic.MOUSEEVENTF_LEFTDOWN, X, Y, 0, 0);
-            System.Threading.Thread.Sleep(5);
-            FrmCubic.mouse_event(FrmCubic.MOUSEEVENTF_LEFTUP, X, Y, 0, 0);
         }
         public virtual void ClickOnMyPosition()
         {
-            FrmCubic.mouse_event(FrmCubic.MOUSEEVENTF_LEFTDOWN, (uint)_iPositionX, (uint)_iPositionY, 0, 0);
-            System.Threading.Thread.Sleep(5);
-            FrmCubic.mouse_event(FrmCubic.MOUSEEVENTF_LEFTUP, (uint)_iPositionX, (uint)_iPositionY, 0, 0);
         }
     }
 }

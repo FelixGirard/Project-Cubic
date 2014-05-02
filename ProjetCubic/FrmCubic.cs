@@ -20,27 +20,40 @@ namespace ProjetCubic
         public static double _dSliderVelocity;
         private int _iIndexEvent, _iNombreEvent, _lMax;
         private long _lTempsDeChanson, _lTempsDepart, _lPremiereNote;
-        private BackgroundWorker bw = new BackgroundWorker();
+        private BackgroundWorker bwBot = new BackgroundWorker();
+        private BackgroundWorker bwRechercheProcessus = new BackgroundWorker();
+        private BackgroundWorker bwRechercheDebutChanson = new BackgroundWorker();
+        Process processosu;
         public FrmCubic()
         {
             InitializeComponent();
-            Process processosu = Process.GetProcessesByName("osu!").First();
             //To get files from a directory : Directory.GetFiles(path,searchPattern);
             _lstEvents = new List<Event>();
             _iIndexEvent = 0;
             Keyhandler = new KeyHandler(Keys.S, this);
             Keyhandler.Register();
 
-            bw.WorkerReportsProgress = true;
-            bw.WorkerSupportsCancellation = true;
-            bw.DoWork += new DoWorkEventHandler(bw_DoWork);
-            bw.ProgressChanged += new ProgressChangedEventHandler(bw_ProgressChanged);
-            bw.RunWorkerCompleted += new RunWorkerCompletedEventHandler(bw_RunWorkerCompleted);
+            bwBot.WorkerReportsProgress = true;
+            bwBot.WorkerSupportsCancellation = true;
+            bwBot.DoWork += new DoWorkEventHandler(bw_DoWork);
+            bwBot.ProgressChanged += new ProgressChangedEventHandler(bw_ProgressChanged);
+            bwBot.RunWorkerCompleted += new RunWorkerCompletedEventHandler(bw_RunWorkerCompleted);
+
+            bwRechercheProcessus.WorkerReportsProgress = true;
+            bwRechercheProcessus.WorkerSupportsCancellation = true;
+            bwRechercheProcessus.DoWork += new DoWorkEventHandler(bwRechercheProcessus_DoWork);
+            bwRechercheProcessus.RunWorkerCompleted += new RunWorkerCompletedEventHandler(bwRechercheProcessus_RunWorkerCompleted);
+            bwRechercheProcessus.RunWorkerAsync();
+
+            bwRechercheDebutChanson.WorkerReportsProgress = true;
+            bwRechercheDebutChanson.WorkerSupportsCancellation = true;
+            bwRechercheDebutChanson.DoWork += new DoWorkEventHandler(bwRechercheDebutChanson_DoWork);
+            bwRechercheDebutChanson.RunWorkerCompleted += new RunWorkerCompletedEventHandler(bwRechercheDebutChanson_RunWorkerCompleted);
         }
 
         private void bw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            //MessageBox.Show("FINISHED");
+            tslblStatut.Text = "Bot stopped!";
         }
 
         private void bw_ProgressChanged(object sender, ProgressChangedEventArgs e)
@@ -50,6 +63,7 @@ namespace ProjetCubic
 
         private void bw_DoWork(object sender, DoWorkEventArgs e)
         {
+            tslblStatut.Text = "Bot running...!";
             BackgroundWorker worker = sender as BackgroundWorker;
             _lTempsDepart = DateTime.Now.Ticks / 10000;
             while (DateTime.Now.Ticks / 10000 - _lTempsDepart <= _lMax)
@@ -62,36 +76,71 @@ namespace ProjetCubic
                 else
                 {
                     _lTempsDeChanson = DateTime.Now.Ticks / 10000 - _lTempsDepart + _lPremiereNote;
-                    if (_iIndexEvent < _iNombreEvent-1 && _lstEvents.ElementAt(_iIndexEvent).iTemps <= _lTempsDeChanson + 3)
+                    if (_iIndexEvent < _iNombreEvent - 1 && _lstEvents.ElementAt(_iIndexEvent).iTemps <= _lTempsDeChanson + 3)
                     {
+                        tslblStatut.Text = "Bot running...!   Note en cours : " + _iIndexEvent;
+                        _lstEvents.ElementAt(_iIndexEvent++).ClickOnMousePosition();
                         //Debug.Write(_lstEvents.ElementAt(_iIndexEvent).iTemps + "=" + _lTempsDeChanson.ToString() + "   ");
-                        _iIndexEvent++;
-                        switch (_lstEvents.ElementAt(_iIndexEvent).GetType().ToString())
-                        {
-                            case "ProjetCubic.Point":
-                                Point point = (Point)_lstEvents[_iIndexEvent];
-                                point.ClickOnMousePosition();
-                                break;
-                            case "ProjetCubic.Slider":
-                                Slider slider = (Slider)_lstEvents[_iIndexEvent];
-                                slider.ClickOnMousePosition();
-                                break;
-                            case "ProjetCubic.Spiner":
-                                Spiner spiner = (Spiner)_lstEvents[_iIndexEvent];
-                                spiner.ClickOnMousePosition();
-                                break;
-                            default:
-                                _lstEvents.ElementAt(_iIndexEvent).ClickOnMousePosition();
-                                break;
-                        }
                     }
-                    else if (_iIndexEvent >= _iNombreEvent-1)
+                    else if (_iIndexEvent >= _iNombreEvent - 1)
                     {
                         this.Close();
                     }
                     //Debug.Write(_lTempsDeChanson.ToString() + "\n");
                 }
             }
+        }
+        private void bwRechercheProcessus_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            tslblStatut.Text = "Osu detected!";
+            bwRechercheDebutChanson.RunWorkerAsync();
+        }
+
+        private void bwRechercheProcessus_DoWork(object sender, DoWorkEventArgs e)
+        {
+            BackgroundWorker worker = sender as BackgroundWorker;
+            while (Process.GetProcessesByName("osu!").Count() == 0)
+            {
+                tslblStatut.Text = "Waiting for Osu! to start.";
+                if ((worker.CancellationPending == true))
+                {
+                    e.Cancel = true;
+                    break;
+                }
+            }
+            processosu = Process.GetProcessesByName("osu!").First();
+        }
+
+        private void bwRechercheDebutChanson_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            tslblStatut.Text = "song found";
+        }
+
+        private void bwRechercheDebutChanson_DoWork(object sender, DoWorkEventArgs e)
+        {
+            tslblStatut.Text = "Waiting for a song to start";
+            BackgroundWorker worker = sender as BackgroundWorker;
+            string sTitreFenêtre, sTitreChanson;
+
+            if(Process.GetProcessesByName("osu!").Count() > 0)
+                processosu = Process.GetProcessesByName("osu!").First();
+
+            sTitreFenêtre = processosu.MainWindowTitle.Trim();
+            while (sTitreFenêtre=="osu!" && Process.GetProcessesByName("osu!").Count() > 0)
+            {
+                if ((worker.CancellationPending == true))
+                {
+                    e.Cancel = true;
+                    break;
+                }
+                processosu = Process.GetProcessesByName("osu!").First();
+                sTitreFenêtre = processosu.MainWindowTitle.Trim();
+            }
+            sTitreChanson = sTitreFenêtre.Substring(sTitreFenêtre.IndexOf('-') + 1, sTitreFenêtre.Length - sTitreFenêtre.IndexOf('-') - 1).Trim();
+            Directory.GetFiles(lblPathChanson.Text, "*" + sTitreChanson + "*.osu",
+                                         SearchOption.AllDirectories);
+            opfParcourirChanson.FileName = sTitreChanson;
+            lblPathChanson.Text = opfParcourirChanson.FileName;
         }
         #region keylog
         protected override void WndProc(ref Message m)
@@ -115,17 +164,19 @@ namespace ProjetCubic
         #region Events
         private void HandleHotkey()
         {
-            if (bw.IsBusy)
+            if (bwBot.IsBusy)
             {
-                bw.CancelAsync();
+                bwBot.CancelAsync();
                 this.Show();
             }
-            else if (lblPathChanson.Text != "")
+            else if (lblPathChanson.Text != "" && !bwRechercheProcessus.IsBusy)
             {
                 this.Hide();
                 MouseHook.Start();
                 MouseHook.MouseAction += new EventHandler(MouseEvent);
             }
+            else if (bwRechercheProcessus.IsBusy)
+                MessageBox.Show("Osu doit être démarré pour cela ! Il n'est actuellement pas détecté.");
         }
 
         private void MouseEvent(object sender, EventArgs e)
@@ -135,7 +186,7 @@ namespace ProjetCubic
             _iIndexEvent = 0;
             _lPremiereNote = _lstEvents.ElementAt(_iIndexEvent++).iTemps;
             _lMax = _lstEvents.Max(ev => ev.iTemps);
-            bw.RunWorkerAsync();
+            bwBot.RunWorkerAsync();
         }
 
         private void btnParcourir_Click(object sender, EventArgs e)
@@ -162,7 +213,7 @@ namespace ProjetCubic
                             _lstEvents.Add(EventDeString(sLigne));
                         }
                         else if (sLigne.StartsWith("SliderMultiplier:"))
-                            double.TryParse(sLigne.Substring(sLigne.IndexOf(':') +1 , sLigne.Length - sLigne.IndexOf(':') -1).Replace('.',','), out _dSliderVelocity);
+                            double.TryParse(sLigne.Substring(sLigne.IndexOf(':') + 1, sLigne.Length - sLigne.IndexOf(':') - 1).Replace('.', ','), out _dSliderVelocity);
                         if (sLigne == "[HitObjects]")
                             bEventSectionStarted = true;
                     }
@@ -203,6 +254,12 @@ namespace ProjetCubic
         private void TrierListeOrdre()
         {
             _lstEvents.OrderBy(evenement => evenement.iTemps);
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            opfParcourirDossierChanson.ShowDialog();
+            lblPathChanson.Text = opfParcourirDossierChanson.SelectedPath;
         }
     }
 }
