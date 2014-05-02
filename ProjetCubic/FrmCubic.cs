@@ -17,7 +17,7 @@ namespace ProjetCubic
     {
         List<Event> _lstEvents;
         private KeyHandler Keyhandler;
-        private double _dSliderVelocity;
+        public static double _dSliderVelocity;
         private int _iIndexEvent, _iNombreEvent, _lMax;
         private long _lTempsDeChanson, _lTempsDepart, _lPremiereNote;
         private BackgroundWorker bw = new BackgroundWorker();
@@ -60,7 +60,7 @@ namespace ProjetCubic
                 else
                 {
                     _lTempsDeChanson = DateTime.Now.Ticks / 10000 - _lTempsDepart + _lPremiereNote;
-                    if (_iIndexEvent < _iNombreEvent && _lstEvents.ElementAt(_iIndexEvent).iTemps <= _lTempsDeChanson + 3)
+                    if (_iIndexEvent < _iNombreEvent-1 && _lstEvents.ElementAt(_iIndexEvent).iTemps <= _lTempsDeChanson + 3)
                     {
                         //Debug.Write(_lstEvents.ElementAt(_iIndexEvent).iTemps + "=" + _lTempsDeChanson.ToString() + "   ");
                         _iIndexEvent++;
@@ -83,7 +83,7 @@ namespace ProjetCubic
                                 break;
                         }
                     }
-                    else if (_iIndexEvent > _iNombreEvent)
+                    else if (_iIndexEvent >= _iNombreEvent-1)
                     {
                         this.Close();
                     }
@@ -160,7 +160,7 @@ namespace ProjetCubic
                             _lstEvents.Add(EventDeString(sLigne));
                         }
                         else if (sLigne.StartsWith("SliderMultiplier:"))
-                            double.TryParse(sLigne.Substring(sLigne.IndexOf(':') +1 , sLigne.Length - sLigne.IndexOf(':') -1), out _dSliderVelocity);
+                            double.TryParse(sLigne.Substring(sLigne.IndexOf(':') +1 , sLigne.Length - sLigne.IndexOf(':') -1).Replace('.',','), out _dSliderVelocity);
                         if (sLigne == "[HitObjects]")
                             bEventSectionStarted = true;
                     }
