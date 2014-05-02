@@ -24,6 +24,8 @@ namespace ProjetCubic
         public FrmCubic()
         {
             InitializeComponent();
+            Process processosu = Process.GetProcessesByName("osu!").First();
+            //To get files from a directory : Directory.GetFiles(path,searchPattern);
             _lstEvents = new List<Event>();
             _iIndexEvent = 0;
             Keyhandler = new KeyHandler(Keys.S, this);
