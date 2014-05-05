@@ -55,13 +55,13 @@ namespace ProjetCubic
             uint X = (uint)Cursor.Position.X;
             uint Y = (uint)Cursor.Position.Y;
             FrmCubic.mouse_event(FrmCubic.MOUSEEVENTF_LEFTDOWN, X, Y, 0, 0);
-            System.Threading.Thread.Sleep((int)(_iLongueur * _byAllerRetour * FrmCubic._dSliderVelocity * FrmCubic._TempsParBattement / 100));
+            System.Threading.Thread.Sleep((int)( _byAllerRetour *10*( _iLongueur/(FrmCubic._dSliderVelocity * 2))));
             FrmCubic.mouse_event(FrmCubic.MOUSEEVENTF_LEFTUP, X, Y, 0, 0);
         }
         public override void ClickOnMyPosition()
         {
             FrmCubic.mouse_event(FrmCubic.MOUSEEVENTF_LEFTDOWN, (uint)this.PositionX, (uint)this.PositionY, 0, 0);
-            System.Threading.Thread.Sleep((int)(_iLongueur * _byAllerRetour * FrmCubic._dSliderVelocity * FrmCubic._TempsParBattement / 100));
+            System.Threading.Thread.Sleep((int)(_byAllerRetour * 10 * (_iLongueur / (FrmCubic._dSliderVelocity * 2))));
             FrmCubic.mouse_event(FrmCubic.MOUSEEVENTF_LEFTUP, (uint)this.PositionX, (uint)this.PositionY, 0, 0);
         }
     }

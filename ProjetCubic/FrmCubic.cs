@@ -81,7 +81,7 @@ namespace ProjetCubic
                 else
                 {
                     _lTempsDeChanson = DateTime.Now.Ticks / 10000 - _lTempsDepart + _lPremiereNote;
-                    if (_iIndexTP <= _iNombreTP - 1 && _lstTimingPoints.ElementAt(_iIndexTP).Offset <= _lTempsDeChanson + 3)
+                    if (_iIndexTP <= _iNombreTP - 1 && _lstTimingPoints.ElementAt(_iIndexTP).Offset <= _lTempsDeChanson)
                     {
                         Debug.Write(_lstTimingPoints.ElementAt(_iIndexTP).Offset + "    ");
                         if (_lstTimingPoints.ElementAt(_iIndexTP++).TempsParBattement < 0)
@@ -89,9 +89,10 @@ namespace ProjetCubic
                         else
                             _TempsParBattement = _lstTimingPoints.ElementAt(_iIndexTP++).TempsParBattement;
                     }
-                    if (_iIndexEvent <= _iNombreEvent - 1 && _lstEvents.ElementAt(_iIndexEvent).iTemps <= _lTempsDeChanson + 3)
+
+                    if (_iIndexEvent <= _iNombreEvent - 1 && ((_lstEvents.ElementAt(_iIndexEvent).GetType().ToString() != "ProjetCubic.Point" && _lstEvents.ElementAt(_iIndexEvent).iTemps <= _lTempsDeChanson) || (_lstEvents.ElementAt(_iIndexEvent).GetType().ToString() == "ProjetCubic.Point" && _lstEvents.ElementAt(_iIndexEvent).iTemps <= _lTempsDeChanson + 2)))
                     {
-                        tslblStatut.Text = "Bot running...!   Note en cours : " + _iIndexEvent;
+                        tslblStatut.Text = "Bot running...!   Note en cours : " + (_iIndexEvent+1);
                         Debug.Write(_lstEvents.ElementAt(_iIndexEvent).iTemps + "=" + _lTempsDeChanson.ToString() + "   ");
                         _lstEvents.ElementAt(_iIndexEvent++).ClickOnMousePosition();
                     }
