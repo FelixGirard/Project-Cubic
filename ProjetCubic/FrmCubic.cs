@@ -15,7 +15,8 @@ namespace ProjetCubic
 {
     public partial class FrmCubic : Form
     {
-        List<Event> _lstEvents;
+        private List<Event> _lstEvents;
+        private List<TimingPoint> _lstTimingPoints;
         private KeyHandler Keyhandler;
         public static double _dSliderVelocity;
         private int _iIndexEvent, _iNombreEvent, _lMax;
@@ -28,7 +29,9 @@ namespace ProjetCubic
         {
             InitializeComponent();
             //To get files from a directory : Directory.GetFiles(path,searchPattern);
+            //Directory.GetFiles(@"C:\Program Files (x86)\osu!\Songs\","*");
             _lstEvents = new List<Event>();
+            _lstTimingPoints= new List<TimingPoint>();
             _iIndexEvent = 0;
             Keyhandler = new KeyHandler(Keys.S, this);
             Keyhandler.Register();
@@ -137,7 +140,7 @@ namespace ProjetCubic
                 sTitreFenêtre = processosu.MainWindowTitle.Trim();
             }
             sTitreChanson = sTitreFenêtre.Substring(sTitreFenêtre.IndexOf('-') + 1, sTitreFenêtre.Length - sTitreFenêtre.IndexOf('-') - 1).Trim();
-            Directory.GetFiles(lblPathChanson.Text, "*" + sTitreChanson + "*.osu",
+            Directory.GetFiles(lblPathChanson.Text, "*" + sTitreChanson + "*",
                                          SearchOption.AllDirectories);
             opfParcourirChanson.FileName = sTitreChanson;
             lblPathChanson.Text = opfParcourirChanson.FileName;
@@ -205,15 +208,27 @@ namespace ProjetCubic
                 using (StreamReader sr = File.OpenText(lblPathChanson.Text))
                 {
                     bool bEventSectionStarted = false;
+                    bool bTimingPointsSectionStarted = false;
                     string sLigne = String.Empty;
                     while ((sLigne = sr.ReadLine()) != null)
                     {
+                        if (bTimingPointsSectionStarted && sLigne == "")
+                            bTimingPointsSectionStarted = false;
+
                         if (bEventSectionStarted)
                         {
                             _lstEvents.Add(EventDeString(sLigne));
                         }
+                        else if (bTimingPointsSectionStarted)
+                        {
+                            _lstTimingPoints.Add(TPDeString(sLigne));
+                        }
                         else if (sLigne.StartsWith("SliderMultiplier:"))
                             double.TryParse(sLigne.Substring(sLigne.IndexOf(':') + 1, sLigne.Length - sLigne.IndexOf(':') - 1).Replace('.', ','), out _dSliderVelocity);
+
+                        if (sLigne == "[TimingPoints]")
+                            bTimingPointsSectionStarted = true;
+
                         if (sLigne == "[HitObjects]")
                             bEventSectionStarted = true;
                     }
@@ -250,6 +265,18 @@ namespace ProjetCubic
                     break;
             }
             return evenement;
+        }
+        private TimingPoint TPDeString(string sLigne)
+        {
+            string[] sTimingPointParams = sLigne.Split(',');
+            int[] iTimingPointParams = new int[sTimingPointParams.Count()];
+            int iCPT = 0;
+            foreach (string param in sTimingPointParams)
+            {
+                int.TryParse(sTimingPointParams[iCPT], out iTimingPointParams[iCPT++]);
+            }
+            TimingPoint TimingP = new TimingPoint(iTimingPointParams[0], iTimingPointParams[1], iTimingPointParams[2], iTimingPointParams[3], iTimingPointParams[5], iTimingPointParams[7]);
+            return TimingP;
         }
         private void TrierListeOrdre()
         {
