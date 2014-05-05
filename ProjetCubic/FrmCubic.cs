@@ -19,7 +19,9 @@ namespace ProjetCubic
         private List<TimingPoint> _lstTimingPoints;
         private KeyHandler Keyhandler;
         public static double _dSliderVelocity;
-        private int _iIndexEvent, _iNombreEvent, _lMax;
+        private int _iIndexEvent, _iIndexTP, _iNombreEvent, _iNombreTP, _lMax;
+        public static double _TempsParBattement, _TempsParBattementBase;
+        private string sPathDossierChanson = @"C:\Program Files (x86)\osu!\Songs\";
         private long _lTempsDeChanson, _lTempsDepart, _lPremiereNote;
         private BackgroundWorker bwBot = new BackgroundWorker();
         private BackgroundWorker bwRechercheProcessus = new BackgroundWorker();
@@ -28,11 +30,10 @@ namespace ProjetCubic
         public FrmCubic()
         {
             InitializeComponent();
-            //To get files from a directory : Directory.GetFiles(path,searchPattern);
-            //Directory.GetFiles(@"C:\Program Files (x86)\osu!\Songs\","*");
             _lstEvents = new List<Event>();
-            _lstTimingPoints= new List<TimingPoint>();
+            _lstTimingPoints = new List<TimingPoint>();
             _iIndexEvent = 0;
+            _iIndexTP = 0;
             Keyhandler = new KeyHandler(Keys.S, this);
             Keyhandler.Register();
 
@@ -69,6 +70,7 @@ namespace ProjetCubic
             tslblStatut.Text = "Bot running...!";
             BackgroundWorker worker = sender as BackgroundWorker;
             _lTempsDepart = DateTime.Now.Ticks / 10000;
+            _TempsParBattement = 500;
             while (DateTime.Now.Ticks / 10000 - _lTempsDepart <= _lMax)
             {
                 if ((worker.CancellationPending == true))
@@ -79,6 +81,14 @@ namespace ProjetCubic
                 else
                 {
                     _lTempsDeChanson = DateTime.Now.Ticks / 10000 - _lTempsDepart + _lPremiereNote;
+                    if (_iIndexTP < _iNombreTP - 1 && _lstTimingPoints.ElementAt(_iIndexTP).Offset <= _lTempsDeChanson + 3)
+                    {
+                        Debug.Write(_lstTimingPoints.ElementAt(_iIndexTP).Offset + "    ");
+                        if (_lstTimingPoints.ElementAt(_iIndexTP++).TempsParBattement < 0)
+                            _TempsParBattement = 100 / _lstTimingPoints.ElementAt(_iIndexTP++).TempsParBattement * -1 * _TempsParBattementBase;
+                        else
+                            _TempsParBattement = _lstTimingPoints.ElementAt(_iIndexTP++).TempsParBattement;
+                    }
                     if (_iIndexEvent < _iNombreEvent - 1 && _lstEvents.ElementAt(_iIndexEvent).iTemps <= _lTempsDeChanson + 3)
                     {
                         tslblStatut.Text = "Bot running...!   Note en cours : " + _iIndexEvent;
@@ -89,7 +99,7 @@ namespace ProjetCubic
                     {
                         this.Close();
                     }
-                    //Debug.Write(_lTempsDeChanson.ToString() + "\n");
+                    Debug.Write(_lTempsDeChanson.ToString() + "\n");
                 }
             }
         }
@@ -116,20 +126,22 @@ namespace ProjetCubic
 
         private void bwRechercheDebutChanson_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            tslblStatut.Text = "song found";
+            if (tslblStatut.Text.Contains(" à été trouvée!"))
+                lblPathChanson.Text = opfParcourirChanson.FileName;
+            ChargerListe();
         }
 
         private void bwRechercheDebutChanson_DoWork(object sender, DoWorkEventArgs e)
         {
             tslblStatut.Text = "Waiting for a song to start";
             BackgroundWorker worker = sender as BackgroundWorker;
-            string sTitreFenêtre, sTitreChanson;
+            string sTitreFenêtre, sTitreChanson, sDifficultee;
 
-            if(Process.GetProcessesByName("osu!").Count() > 0)
+            if (Process.GetProcessesByName("osu!").Count() > 0)
                 processosu = Process.GetProcessesByName("osu!").First();
 
             sTitreFenêtre = processosu.MainWindowTitle.Trim();
-            while (sTitreFenêtre=="osu!" && Process.GetProcessesByName("osu!").Count() > 0)
+            while (sTitreFenêtre == "osu!" && Process.GetProcessesByName("osu!").Count() > 0 || sTitreFenêtre == "")
             {
                 if ((worker.CancellationPending == true))
                 {
@@ -140,10 +152,17 @@ namespace ProjetCubic
                 sTitreFenêtre = processosu.MainWindowTitle.Trim();
             }
             sTitreChanson = sTitreFenêtre.Substring(sTitreFenêtre.IndexOf('-') + 1, sTitreFenêtre.Length - sTitreFenêtre.IndexOf('-') - 1).Trim();
-            Directory.GetFiles(lblPathChanson.Text, "*" + sTitreChanson + "*",
-                                         SearchOption.AllDirectories);
-            opfParcourirChanson.FileName = sTitreChanson;
-            lblPathChanson.Text = opfParcourirChanson.FileName;
+            sDifficultee = sTitreChanson.Substring(sTitreChanson.IndexOf('['), sTitreChanson.Length - sTitreChanson.IndexOf('[')).Trim();
+            sTitreChanson = sTitreChanson.Substring(0, sTitreChanson.IndexOf('[') - 1).Trim();
+            string[] files = Directory.GetFiles(sPathDossierChanson, sTitreChanson + "*" + sDifficultee + "*", SearchOption.AllDirectories);
+            if (files.Count() > 0)
+            {
+                tslblStatut.Text = "La chanson " + sTitreChanson + " à été trouvée!";
+                opfParcourirChanson.FileName = files.First();
+                ChargerListe();
+            }
+            else
+                tslblStatut.Text = "La chanson " + sTitreChanson + " est introuvable.";
         }
         #region keylog
         protected override void WndProc(ref Message m)
@@ -174,7 +193,7 @@ namespace ProjetCubic
             }
             else if (lblPathChanson.Text != "" && !bwRechercheProcessus.IsBusy)
             {
-                this.Hide();
+                //this.Hide();
                 MouseHook.Start();
                 MouseHook.MouseAction += new EventHandler(MouseEvent);
             }
@@ -186,15 +205,19 @@ namespace ProjetCubic
         {
             MouseHook.stop();
             _lTempsDeChanson = 0;
+            _iIndexTP = 0;
             _iIndexEvent = 0;
             _lPremiereNote = _lstEvents.ElementAt(_iIndexEvent++).iTemps;
             _lMax = _lstEvents.Max(ev => ev.iTemps);
+            _TempsParBattementBase = _lstTimingPoints.ElementAt(_iIndexTP++).TempsParBattement;
+            _TempsParBattement = _TempsParBattementBase;
             bwBot.RunWorkerAsync();
         }
 
         private void btnParcourir_Click(object sender, EventArgs e)
         {
             opfParcourirChanson.ShowDialog();
+            sPathDossierChanson = opfParcourirChanson.FileName;
             lblPathChanson.Text = opfParcourirChanson.FileName;
             ChargerListe();
         }
@@ -235,6 +258,7 @@ namespace ProjetCubic
                 }
             }
             _iNombreEvent = _lstEvents.Count();
+            _iNombreTP = _lstTimingPoints.Count();
             TrierListeOrdre();
         }
         private Event EventDeString(string sLigne)
@@ -270,12 +294,16 @@ namespace ProjetCubic
         {
             string[] sTimingPointParams = sLigne.Split(',');
             int[] iTimingPointParams = new int[sTimingPointParams.Count()];
+            double dTempsParBattement = 0;
             int iCPT = 0;
             foreach (string param in sTimingPointParams)
             {
+                if (iCPT == 1)
+                    double.TryParse(sTimingPointParams[iCPT].Replace('.', ','), out dTempsParBattement);
+
                 int.TryParse(sTimingPointParams[iCPT], out iTimingPointParams[iCPT++]);
             }
-            TimingPoint TimingP = new TimingPoint(iTimingPointParams[0], iTimingPointParams[1], iTimingPointParams[2], iTimingPointParams[3], iTimingPointParams[5], iTimingPointParams[7]);
+            TimingPoint TimingP = new TimingPoint(iTimingPointParams[0], dTempsParBattement, iTimingPointParams[2], iTimingPointParams[3], iTimingPointParams[5], iTimingPointParams[7]);
             return TimingP;
         }
         private void TrierListeOrdre()

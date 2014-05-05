@@ -78,9 +78,9 @@
             // 
             this.ssBarreStatut.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.tslblStatut});
-            this.ssBarreStatut.Location = new System.Drawing.Point(0, 101);
+            this.ssBarreStatut.Location = new System.Drawing.Point(0, 104);
             this.ssBarreStatut.Name = "ssBarreStatut";
-            this.ssBarreStatut.Size = new System.Drawing.Size(518, 22);
+            this.ssBarreStatut.Size = new System.Drawing.Size(545, 22);
             this.ssBarreStatut.TabIndex = 3;
             // 
             // tslblStatut
@@ -93,9 +93,9 @@
             // 
             this.button1.Location = new System.Drawing.Point(401, 33);
             this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(75, 23);
+            this.button1.Size = new System.Drawing.Size(105, 23);
             this.button1.TabIndex = 4;
-            this.button1.Text = "Parcourir...";
+            this.button1.Text = "Parcourir dossier...";
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
@@ -103,7 +103,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(518, 123);
+            this.ClientSize = new System.Drawing.Size(545, 126);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.ssBarreStatut);
             this.Controls.Add(this.lblTempschanson);
