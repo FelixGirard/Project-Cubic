@@ -22,7 +22,7 @@ namespace ProjetCubic
         private int _iIndexEvent, _iIndexTP, _iNombreEvent, _iNombreTP, _lMax;
         public static double _TempsParBattement, _TempsParBattementBase;
         private string sPathDossierChanson = @"C:\Program Files (x86)\osu!\Songs\";
-        private long _lTempsDeChanson, _lTempsDepart, _lPremiereNote;
+        private long _lTempsDeChanson, _lTempsDepart, _lPremiereNote, _lTempsDepart1, _lTempsDepart2, _lTempsDepart3;
         public Rectangle _WindowsRect;
         private BackgroundWorker bwBot = new BackgroundWorker();
         private BackgroundWorker bwRechercheProcessus = new BackgroundWorker();
@@ -66,26 +66,32 @@ namespace ProjetCubic
         #region BackgroundWorker
         private void bwDetectionPixelCadran_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            throw new NotImplementedException();
+            _lTempsDepart2 = DateTime.Now.Ticks / 10000 - _lTempsDepart1;
+            _lTempsDepart1 = DateTime.Now.Ticks / 10000;
+            DémarrerBot();
+            bwDetectionPixelCadran.Dispose();
         }
 
         private void bwDetectionPixelCadran_DoWork(object sender, DoWorkEventArgs e)
         {
             BackgroundWorker worker = sender as BackgroundWorker;
-            while (GetPixelColor(_WindowsRect.Left+4,_WindowsRect.Height-3) != Color.Azure)
+            Color CouleurPixel;
+            CouleurPixel = GetPixelColor(_WindowsRect.Left + 4, _WindowsRect.Height - 3);
+            while (!(CouleurPixel.R >= 135 && CouleurPixel.R <= 150 && CouleurPixel.G >= 135 && CouleurPixel.G <= 150 && CouleurPixel.B >= 75 && CouleurPixel.B <= 90))
             {
-                tslblStatut.Text = GetPixelColor(_WindowsRect.Left + 4, _WindowsRect.Height - 3).ToString() + "   " + (_WindowsRect.Left + 4) + (_WindowsRect.Height - 3);
+                tslblStatut.Text = CouleurPixel.ToString() + "   " + (_WindowsRect.Left + 3) + (_WindowsRect.Height - 4);
                 if ((worker.CancellationPending == true))
                 {
                     e.Cancel = true;
                     break;
                 }
+                CouleurPixel = GetPixelColor(_WindowsRect.Left + 3, _WindowsRect.Height - 4);
             }
-            _processosu = Process.GetProcessesByName("osu!").First();
         }
         private void bw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             tslblStatut.Text = "Bot stopped!";
+            bwBot.Dispose();
         }
 
         private void bw_ProgressChanged(object sender, ProgressChangedEventArgs e)
@@ -122,6 +128,7 @@ namespace ProjetCubic
                     {
                         tslblStatut.Text = "Bot running...!   Note en cours : " + (_iIndexEvent + 1);
                         Debug.Write(_lstEvents.ElementAt(_iIndexEvent).iTemps + "=" + _lTempsDeChanson.ToString() + "   ");
+                        _lTempsDepart3 = DateTime.Now.Ticks / 10000 - _lTempsDepart1;
                         _lstEvents.ElementAt(_iIndexEvent++).ClickOnMousePosition();
                     }
                     else if (_iIndexEvent >= _iNombreEvent - 1)
@@ -136,6 +143,7 @@ namespace ProjetCubic
         {
             tslblStatut.Text = "Osu detected!";
             bwRechercheDebutChanson.RunWorkerAsync();
+            bwRechercheProcessus.Dispose();
         }
 
         private void bwRechercheProcessus_DoWork(object sender, DoWorkEventArgs e)
@@ -155,11 +163,13 @@ namespace ProjetCubic
 
         private void bwRechercheDebutChanson_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
+            _lTempsDepart1 = DateTime.Now.Ticks / 10000;
             if (tslblStatut.Text.Contains(" à été trouvée!"))
                 lblPathChanson.Text = opfParcourirChanson.FileName;
             ChargerListe();
             getosuWindowSize();
             bwDetectionPixelCadran.RunWorkerAsync();
+            bwRechercheDebutChanson.Dispose();
         }
 
         private void bwRechercheDebutChanson_DoWork(object sender, DoWorkEventArgs e)
@@ -222,7 +232,6 @@ namespace ProjetCubic
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool GetWindowRect(IntPtr hWnd, out Rectangle rect);
 
-        Rectangle bonds = new Rectangle();
         private void getosuWindowSize()
         {
             GetWindowRect(_processosu.MainWindowHandle
@@ -273,14 +282,8 @@ namespace ProjetCubic
         private void MouseEvent(object sender, EventArgs e)
         {
             MouseHook.stop();
-            _lTempsDeChanson = 0;
-            _iIndexTP = 0;
-            _iIndexEvent = 0;
-            _lPremiereNote = _lstEvents.ElementAt(_iIndexEvent++).iTemps;
-            _lMax = _lstEvents.Max(ev => ev.iTemps);
-            _TempsParBattementBase = _lstTimingPoints.ElementAt(_iIndexTP++).TempsParBattement;
-            _TempsParBattement = _TempsParBattementBase;
-            bwBot.RunWorkerAsync();
+            _lTempsDepart3 = DateTime.Now.Ticks / 10000 - _lTempsDepart1;
+            DémarrerBot();
         }
 
         private void btnParcourir_Click(object sender, EventArgs e)
@@ -385,6 +388,20 @@ namespace ProjetCubic
         {
             opfParcourirDossierChanson.ShowDialog();
             lblPathChanson.Text = opfParcourirDossierChanson.SelectedPath;
+        }
+        private void DémarrerBot()
+        {
+            if (!bwBot.IsBusy)
+            {
+                _lTempsDeChanson = 0;
+                _iIndexTP = 0;
+                _iIndexEvent = 0;
+                _lPremiereNote = _lstEvents.ElementAt(_iIndexEvent++).iTemps;
+                _lMax = _lstEvents.Max(ev => ev.iTemps);
+                _TempsParBattementBase = _lstTimingPoints.ElementAt(_iIndexTP++).TempsParBattement;
+                _TempsParBattement = _TempsParBattementBase;
+                bwBot.RunWorkerAsync();
+            }
         }
     }
 }
