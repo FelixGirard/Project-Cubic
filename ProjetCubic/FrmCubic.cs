@@ -23,10 +23,12 @@ namespace ProjetCubic
         public static double _TempsParBattement, _TempsParBattementBase;
         private string sPathDossierChanson = @"C:\Program Files (x86)\osu!\Songs\";
         private long _lTempsDeChanson, _lTempsDepart, _lPremiereNote;
+        public Rectangle _WindowsRect;
         private BackgroundWorker bwBot = new BackgroundWorker();
         private BackgroundWorker bwRechercheProcessus = new BackgroundWorker();
         private BackgroundWorker bwRechercheDebutChanson = new BackgroundWorker();
-        Process processosu;
+        private BackgroundWorker bwDetectionPixelCadran = new BackgroundWorker();
+        private Process _processosu;
         public FrmCubic()
         {
             InitializeComponent();
@@ -53,8 +55,34 @@ namespace ProjetCubic
             bwRechercheDebutChanson.WorkerSupportsCancellation = true;
             bwRechercheDebutChanson.DoWork += new DoWorkEventHandler(bwRechercheDebutChanson_DoWork);
             bwRechercheDebutChanson.RunWorkerCompleted += new RunWorkerCompletedEventHandler(bwRechercheDebutChanson_RunWorkerCompleted);
+
+            bwDetectionPixelCadran.WorkerReportsProgress = true;
+            bwDetectionPixelCadran.WorkerSupportsCancellation = true;
+            bwDetectionPixelCadran.DoWork += new DoWorkEventHandler(bwDetectionPixelCadran_DoWork);
+            bwDetectionPixelCadran.RunWorkerCompleted += new RunWorkerCompletedEventHandler(bwDetectionPixelCadran_RunWorkerCompleted);
+
         }
 
+        #region BackgroundWorker
+        private void bwDetectionPixelCadran_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void bwDetectionPixelCadran_DoWork(object sender, DoWorkEventArgs e)
+        {
+            BackgroundWorker worker = sender as BackgroundWorker;
+            while (GetPixelColor(_WindowsRect.Left+4,_WindowsRect.Height-3) != Color.Azure)
+            {
+                tslblStatut.Text = GetPixelColor(_WindowsRect.Left + 4, _WindowsRect.Height - 3).ToString() + "   " + (_WindowsRect.Left + 4) + (_WindowsRect.Height - 3);
+                if ((worker.CancellationPending == true))
+                {
+                    e.Cancel = true;
+                    break;
+                }
+            }
+            _processosu = Process.GetProcessesByName("osu!").First();
+        }
         private void bw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             tslblStatut.Text = "Bot stopped!";
@@ -92,7 +120,7 @@ namespace ProjetCubic
 
                     if (_iIndexEvent <= _iNombreEvent - 1 && ((_lstEvents.ElementAt(_iIndexEvent).GetType().ToString() != "ProjetCubic.Point" && _lstEvents.ElementAt(_iIndexEvent).iTemps <= _lTempsDeChanson) || (_lstEvents.ElementAt(_iIndexEvent).GetType().ToString() == "ProjetCubic.Point" && _lstEvents.ElementAt(_iIndexEvent).iTemps <= _lTempsDeChanson + 2)))
                     {
-                        tslblStatut.Text = "Bot running...!   Note en cours : " + (_iIndexEvent+1);
+                        tslblStatut.Text = "Bot running...!   Note en cours : " + (_iIndexEvent + 1);
                         Debug.Write(_lstEvents.ElementAt(_iIndexEvent).iTemps + "=" + _lTempsDeChanson.ToString() + "   ");
                         _lstEvents.ElementAt(_iIndexEvent++).ClickOnMousePosition();
                     }
@@ -122,7 +150,7 @@ namespace ProjetCubic
                     break;
                 }
             }
-            processosu = Process.GetProcessesByName("osu!").First();
+            _processosu = Process.GetProcessesByName("osu!").First();
         }
 
         private void bwRechercheDebutChanson_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
@@ -130,6 +158,8 @@ namespace ProjetCubic
             if (tslblStatut.Text.Contains(" à été trouvée!"))
                 lblPathChanson.Text = opfParcourirChanson.FileName;
             ChargerListe();
+            getosuWindowSize();
+            bwDetectionPixelCadran.RunWorkerAsync();
         }
 
         private void bwRechercheDebutChanson_DoWork(object sender, DoWorkEventArgs e)
@@ -139,9 +169,9 @@ namespace ProjetCubic
             string sTitreFenêtre, sTitreChanson, sDifficultee;
 
             if (Process.GetProcessesByName("osu!").Count() > 0)
-                processosu = Process.GetProcessesByName("osu!").First();
+                _processosu = Process.GetProcessesByName("osu!").First();
 
-            sTitreFenêtre = processosu.MainWindowTitle.Trim();
+            sTitreFenêtre = _processosu.MainWindowTitle.Trim();
             while (sTitreFenêtre == "osu!" && Process.GetProcessesByName("osu!").Count() > 0 || sTitreFenêtre == "")
             {
                 if ((worker.CancellationPending == true))
@@ -149,8 +179,8 @@ namespace ProjetCubic
                     e.Cancel = true;
                     break;
                 }
-                processosu = Process.GetProcessesByName("osu!").First();
-                sTitreFenêtre = processosu.MainWindowTitle.Trim();
+                _processosu = Process.GetProcessesByName("osu!").First();
+                sTitreFenêtre = _processosu.MainWindowTitle.Trim();
             }
             sTitreChanson = sTitreFenêtre.Substring(sTitreFenêtre.IndexOf('-') + 1, sTitreFenêtre.Length - sTitreFenêtre.IndexOf('-') - 1).Trim();
             sDifficultee = sTitreChanson.Substring(sTitreChanson.IndexOf('['), sTitreChanson.Length - sTitreChanson.IndexOf('[')).Trim();
@@ -165,6 +195,8 @@ namespace ProjetCubic
             else
                 tslblStatut.Text = "La chanson " + sTitreChanson + " est introuvable.";
         }
+        #endregion
+
         #region keylog
         protected override void WndProc(ref Message m)
         {
@@ -184,6 +216,42 @@ namespace ProjetCubic
         public const uint MOUSEEVENTF_RIGHTUP = 0x10;
 
         #endregion
+
+        #region GetWindowsBounds
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool GetWindowRect(IntPtr hWnd, out Rectangle rect);
+
+        Rectangle bonds = new Rectangle();
+        private void getosuWindowSize()
+        {
+            GetWindowRect(_processosu.MainWindowHandle
+       , out _WindowsRect);
+        }
+        #endregion
+
+        #region GetPixelColor
+
+        [DllImport("user32.dll")]
+        static extern IntPtr GetDC(IntPtr hwnd);
+
+        [DllImport("user32.dll")]
+        static extern Int32 ReleaseDC(IntPtr hwnd, IntPtr hdc);
+
+        [DllImport("gdi32.dll")]
+        static extern uint GetPixel(IntPtr hdc, int nXPos, int nYPos);
+        static public System.Drawing.Color GetPixelColor(int x, int y)
+        {
+            IntPtr hdc = GetDC(IntPtr.Zero);
+            uint pixel = GetPixel(hdc, x, y);
+            ReleaseDC(IntPtr.Zero, hdc);
+            Color color = Color.FromArgb((int)(pixel & 0x000000FF),
+                         (int)(pixel & 0x0000FF00) >> 8,
+                         (int)(pixel & 0x00FF0000) >> 16);
+            return color;
+        }
+        #endregion
+
         #region Events
         private void HandleHotkey()
         {
@@ -224,6 +292,8 @@ namespace ProjetCubic
         }
 
         #endregion
+
+
         private void ChargerListe()
         {
             if (lblPathChanson.Text != "" && File.Exists(lblPathChanson.Text))
@@ -311,8 +381,7 @@ namespace ProjetCubic
         {
             _lstEvents.OrderBy(evenement => evenement.iTemps);
         }
-
-        private void button1_Click(object sender, EventArgs e)
+        private void btnParcourirDossier_Click(object sender, EventArgs e)
         {
             opfParcourirDossierChanson.ShowDialog();
             lblPathChanson.Text = opfParcourirDossierChanson.SelectedPath;

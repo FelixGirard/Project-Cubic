@@ -17,13 +17,13 @@ namespace ProjetCubic
             uint X = (uint)Cursor.Position.X;
             uint Y = (uint)Cursor.Position.Y;
             FrmCubic.mouse_event(FrmCubic.MOUSEEVENTF_LEFTDOWN, X, Y, 0, 0);
-            System.Threading.Thread.Sleep(5);
+            System.Threading.Thread.Sleep(25);
             FrmCubic.mouse_event(FrmCubic.MOUSEEVENTF_LEFTUP, X, Y, 0, 0);
         }
         public override void ClickOnMyPosition()
         {
             FrmCubic.mouse_event(FrmCubic.MOUSEEVENTF_LEFTDOWN, (uint)this.PositionX, (uint)this.PositionY, 0, 0);
-            System.Threading.Thread.Sleep(5);
+            System.Threading.Thread.Sleep(25);
             FrmCubic.mouse_event(FrmCubic.MOUSEEVENTF_LEFTUP, (uint)this.PositionX, (uint)this.PositionY, 0, 0);
         }
     }
