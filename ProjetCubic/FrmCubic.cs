@@ -22,15 +22,17 @@ namespace ProjetCubic
         private int _iIndexEvent, _iIndexTP, _iNombreEvent, _iNombreTP, _lMax;
         public static double _TempsParBattement, _TempsParBattementBase;
         private string sPathDossierChanson = @"C:\Program Files (x86)\osu!\Songs\";
-        private long _lTempsDeChanson, _lTempsDepart, _lPremiereNote, _lTempsDepart1, _lTempsDepart2, _lTempsDepart3;
+        private long _lTempsDeChanson, _lTempsDepart, _lPremiereNote, _lTempsDepart1;
         public Rectangle _WindowsRect;
         private BackgroundWorker bwBot = new BackgroundWorker();
         private BackgroundWorker bwRechercheProcessus = new BackgroundWorker();
         private BackgroundWorker bwRechercheDebutChanson = new BackgroundWorker();
+        private BackgroundWorker bwRechercheFinChanson = new BackgroundWorker();
         private BackgroundWorker bwDetectionPixelCadran = new BackgroundWorker();
         private Process _processosu;
         public FrmCubic()
         {
+
             InitializeComponent();
             _lstEvents = new List<Event>();
             _lstTimingPoints = new List<TimingPoint>();
@@ -56,6 +58,11 @@ namespace ProjetCubic
             bwRechercheDebutChanson.DoWork += new DoWorkEventHandler(bwRechercheDebutChanson_DoWork);
             bwRechercheDebutChanson.RunWorkerCompleted += new RunWorkerCompletedEventHandler(bwRechercheDebutChanson_RunWorkerCompleted);
 
+            bwRechercheFinChanson.WorkerReportsProgress = true;
+            bwRechercheFinChanson.WorkerSupportsCancellation = true;
+            bwRechercheFinChanson.DoWork += new DoWorkEventHandler(bwRechercheFinChanson_DoWork);
+            bwRechercheFinChanson.RunWorkerCompleted += new RunWorkerCompletedEventHandler(bwRechercheFinChanson_RunWorkerCompleted);
+
             bwDetectionPixelCadran.WorkerReportsProgress = true;
             bwDetectionPixelCadran.WorkerSupportsCancellation = true;
             bwDetectionPixelCadran.DoWork += new DoWorkEventHandler(bwDetectionPixelCadran_DoWork);
@@ -66,7 +73,7 @@ namespace ProjetCubic
         #region BackgroundWorker
         private void bwDetectionPixelCadran_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            _lTempsDepart2 = DateTime.Now.Ticks / 10000 - _lTempsDepart1;
+
             _lTempsDepart1 = DateTime.Now.Ticks / 10000;
             DémarrerBot();
             bwDetectionPixelCadran.Dispose();
@@ -76,9 +83,11 @@ namespace ProjetCubic
         {
             BackgroundWorker worker = sender as BackgroundWorker;
             Color CouleurPixel;
+            List<int> Durees = new List<int>();
             CouleurPixel = GetPixelColor(_WindowsRect.Left + 4, _WindowsRect.Height - 3);
             while (!(CouleurPixel.R >= 135 && CouleurPixel.R <= 150 && CouleurPixel.G >= 135 && CouleurPixel.G <= 150 && CouleurPixel.B >= 75 && CouleurPixel.B <= 90))
             {
+                _lTempsDepart1 = DateTime.Now.Ticks / 10000;
                 tslblStatut.Text = CouleurPixel.ToString() + "   " + (_WindowsRect.Left + 3) + (_WindowsRect.Height - 4);
                 if ((worker.CancellationPending == true))
                 {
@@ -86,7 +95,9 @@ namespace ProjetCubic
                     break;
                 }
                 CouleurPixel = GetPixelColor(_WindowsRect.Left + 3, _WindowsRect.Height - 4);
+                Durees.Add((int)(DateTime.Now.Ticks / 10000 - _lTempsDepart1));
             }
+            MessageBox.Show(Durees.Average().ToString());
         }
         private void bw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
@@ -104,6 +115,7 @@ namespace ProjetCubic
             tslblStatut.Text = "Bot running...!";
             BackgroundWorker worker = sender as BackgroundWorker;
             _lTempsDepart = DateTime.Now.Ticks / 10000;
+            _lTempsDepart1 = _lTempsDepart - _lTempsDepart1;
             _TempsParBattement = 500;
             while (DateTime.Now.Ticks / 10000 - _lTempsDepart <= _lMax)
             {
@@ -114,7 +126,7 @@ namespace ProjetCubic
                 }
                 else
                 {
-                    _lTempsDeChanson = DateTime.Now.Ticks / 10000 - _lTempsDepart + _lPremiereNote;
+                    _lTempsDeChanson = DateTime.Now.Ticks / 10000 - _lTempsDepart + _lPremiereNote + 10;
                     if (_iIndexTP <= _iNombreTP - 1 && _lstTimingPoints.ElementAt(_iIndexTP).Offset <= _lTempsDeChanson)
                     {
                         Debug.Write(_lstTimingPoints.ElementAt(_iIndexTP).Offset + "    ");
@@ -124,11 +136,10 @@ namespace ProjetCubic
                             _TempsParBattement = _lstTimingPoints.ElementAt(_iIndexTP++).TempsParBattement;
                     }
 
-                    if (_iIndexEvent <= _iNombreEvent - 1 && ((_lstEvents.ElementAt(_iIndexEvent).GetType().ToString() != "ProjetCubic.Point" && _lstEvents.ElementAt(_iIndexEvent).iTemps <= _lTempsDeChanson) || (_lstEvents.ElementAt(_iIndexEvent).GetType().ToString() == "ProjetCubic.Point" && _lstEvents.ElementAt(_iIndexEvent).iTemps <= _lTempsDeChanson + 2)))
+                    if (_iIndexEvent <= _iNombreEvent - 1 && ((_lstEvents.ElementAt(_iIndexEvent).GetType().ToString() != "ProjetCubic.Point" && _lstEvents.ElementAt(_iIndexEvent).iTemps <= _lTempsDeChanson) || (_lstEvents.ElementAt(_iIndexEvent).GetType().ToString() == "ProjetCubic.Point" && _lstEvents.ElementAt(_iIndexEvent).iTemps <= _lTempsDeChanson)))
                     {
                         tslblStatut.Text = "Bot running...!   Note en cours : " + (_iIndexEvent + 1);
                         Debug.Write(_lstEvents.ElementAt(_iIndexEvent).iTemps + "=" + _lTempsDeChanson.ToString() + "   ");
-                        _lTempsDepart3 = DateTime.Now.Ticks / 10000 - _lTempsDepart1;
                         _lstEvents.ElementAt(_iIndexEvent++).ClickOnMousePosition();
                     }
                     else if (_iIndexEvent >= _iNombreEvent - 1)
@@ -163,12 +174,13 @@ namespace ProjetCubic
 
         private void bwRechercheDebutChanson_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            _lTempsDepart1 = DateTime.Now.Ticks / 10000;
+            //_lTempsDepart1 = DateTime.Now.Ticks / 10000;
             if (tslblStatut.Text.Contains(" à été trouvée!"))
                 lblPathChanson.Text = opfParcourirChanson.FileName;
             ChargerListe();
-            getosuWindowSize();
-            bwDetectionPixelCadran.RunWorkerAsync();
+            //getosuWindowSize();
+            //bwDetectionPixelCadran.RunWorkerAsync();
+            bwRechercheFinChanson.RunWorkerAsync();
             bwRechercheDebutChanson.Dispose();
         }
 
@@ -204,6 +216,30 @@ namespace ProjetCubic
             }
             else
                 tslblStatut.Text = "La chanson " + sTitreChanson + " est introuvable.";
+        }
+        private void bwRechercheFinChanson_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+
+            bwRechercheDebutChanson.RunWorkerAsync();
+            bwRechercheFinChanson.Dispose();
+        }
+
+        private void bwRechercheFinChanson_DoWork(object sender, DoWorkEventArgs e)
+        {
+            BackgroundWorker worker = sender as BackgroundWorker;
+
+            if (Process.GetProcessesByName("osu!").Count() > 0)
+                _processosu = Process.GetProcessesByName("osu!").First();
+
+            while (Process.GetProcessesByName("osu!").Count() > 0 && _processosu.MainWindowTitle.Trim() != "osu!")
+            {
+                if ((worker.CancellationPending == true))
+                {
+                    e.Cancel = true;
+                    break;
+                }
+                _processosu = Process.GetProcessesByName("osu!").First();
+            }
         }
         #endregion
 
@@ -266,6 +302,7 @@ namespace ProjetCubic
         {
             if (bwBot.IsBusy)
             {
+                _lPremiereNote = _lTempsDeChanson;
                 bwBot.CancelAsync();
                 this.Show();
             }
@@ -282,8 +319,11 @@ namespace ProjetCubic
         private void MouseEvent(object sender, EventArgs e)
         {
             MouseHook.stop();
-            _lTempsDepart3 = DateTime.Now.Ticks / 10000 - _lTempsDepart1;
-            DémarrerBot();
+            _lTempsDepart1 = DateTime.Now.Ticks / 10000;
+            if (_lTempsDeChanson > 0)
+                bwBot.RunWorkerAsync();
+            else
+                DémarrerBot();
         }
 
         private void btnParcourir_Click(object sender, EventArgs e)
