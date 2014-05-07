@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using System.Runtime.InteropServices;
 using System.IO;
 using System.Diagnostics;
+using CSCore.CoreAudioAPI;
 
 namespace ProjetCubic
 {
@@ -28,7 +29,7 @@ namespace ProjetCubic
         private BackgroundWorker bwRechercheProcessus = new BackgroundWorker();
         private BackgroundWorker bwRechercheDebutChanson = new BackgroundWorker();
         private BackgroundWorker bwRechercheFinChanson = new BackgroundWorker();
-        private BackgroundWorker bwDetectionPixelCadran = new BackgroundWorker();
+        private BackgroundWorker bwDetectionSon = new BackgroundWorker();
         private Process _processosu;
         public FrmCubic()
         {
@@ -63,26 +64,62 @@ namespace ProjetCubic
             bwRechercheFinChanson.DoWork += new DoWorkEventHandler(bwRechercheFinChanson_DoWork);
             bwRechercheFinChanson.RunWorkerCompleted += new RunWorkerCompletedEventHandler(bwRechercheFinChanson_RunWorkerCompleted);
 
-            bwDetectionPixelCadran.WorkerReportsProgress = true;
-            bwDetectionPixelCadran.WorkerSupportsCancellation = true;
-            bwDetectionPixelCadran.DoWork += new DoWorkEventHandler(bwDetectionPixelCadran_DoWork);
-            bwDetectionPixelCadran.RunWorkerCompleted += new RunWorkerCompletedEventHandler(bwDetectionPixelCadran_RunWorkerCompleted);
+            bwDetectionSon.WorkerReportsProgress = true;
+            bwDetectionSon.WorkerSupportsCancellation = true;
+            bwDetectionSon.DoWork += new DoWorkEventHandler(bwDetectionSon_DoWork);
+            bwDetectionSon.RunWorkerCompleted += new RunWorkerCompletedEventHandler(bwDetectionSon_RunWorkerCompleted);
 
         }
 
+        #region AnalyseSon
+        private byte getOutputSound()
+        {
+            return (byte)(GetDefaultAudioSessionManager2(DataFlow.Render).GetSessionEnumerator().Where(item => item.DisplayName == "").Max(value => value.QueryInterface<AudioMeterInformation>().GetPeakValue()) * 100);
+        }
+        private static AudioSessionManager2 GetDefaultAudioSessionManager2(DataFlow dataFlow)
+        {
+            using (var enumerator = new MMDeviceEnumerator())
+            {
+                using (var device = enumerator.GetDefaultAudioEndpoint(dataFlow, Role.Multimedia))
+                {
+                    var sessionManager = AudioSessionManager2.FromMMDevice(device);
+                    return sessionManager;
+                }
+            }
+        }
+#endregion
         #region BackgroundWorker
-        private void bwDetectionPixelCadran_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        private void bwDetectionSon_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
 
-            _lTempsDepart1 = DateTime.Now.Ticks / 10000;
-            DémarrerBot();
-            bwDetectionPixelCadran.Dispose();
+            //_lTempsDepart1 = DateTime.Now.Ticks / 10000;
+            //DémarrerBot();
+            _lTempsDeChanson = 0;
+            _iIndexTP = 0;
+            _iIndexEvent = 0;
+            _lPremiereNote = 2;
+            _lMax = _lstEvents.Max(ev => ev.iTemps);
+            _TempsParBattementBase = _lstTimingPoints.ElementAt(_iIndexTP++).TempsParBattement;
+            _TempsParBattement = _TempsParBattementBase;
+            bwBot.RunWorkerAsync();
+            bwDetectionSon.Dispose();
         }
 
-        private void bwDetectionPixelCadran_DoWork(object sender, DoWorkEventArgs e)
+        private void bwDetectionSon_DoWork(object sender, DoWorkEventArgs e)
         {
             BackgroundWorker worker = sender as BackgroundWorker;
-            Color CouleurPixel;
+            byte byVolume = getOutputSound();
+            while (byVolume<1)
+            {
+                Debug.WriteLine(byVolume);
+                if ((worker.CancellationPending == true))
+                {
+                    e.Cancel = true;
+                    break;
+                }
+                byVolume = getOutputSound();
+            }
+            /*Color CouleurPixel;
             List<int> Durees = new List<int>();
             CouleurPixel = GetPixelColor(_WindowsRect.Left + 4, _WindowsRect.Height - 3);
             while (!(CouleurPixel.R >= 135 && CouleurPixel.R <= 150 && CouleurPixel.G >= 135 && CouleurPixel.G <= 150 && CouleurPixel.B >= 75 && CouleurPixel.B <= 90))
@@ -98,6 +135,7 @@ namespace ProjetCubic
                 Durees.Add((int)(DateTime.Now.Ticks / 10000 - _lTempsDepart1));
             }
             MessageBox.Show(Durees.Average().ToString());
+             */
         }
         private void bw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
@@ -126,7 +164,7 @@ namespace ProjetCubic
                 }
                 else
                 {
-                    _lTempsDeChanson = DateTime.Now.Ticks / 10000 - _lTempsDepart + _lPremiereNote + 10;
+                    _lTempsDeChanson = DateTime.Now.Ticks / 10000 - _lTempsDepart + _lPremiereNote + 13;
                     if (_iIndexTP <= _iNombreTP - 1 && _lstTimingPoints.ElementAt(_iIndexTP).Offset <= _lTempsDeChanson)
                     {
                         Debug.Write(_lstTimingPoints.ElementAt(_iIndexTP).Offset + "    ");
@@ -179,7 +217,9 @@ namespace ProjetCubic
                 lblPathChanson.Text = opfParcourirChanson.FileName;
             ChargerListe();
             //getosuWindowSize();
-            //bwDetectionPixelCadran.RunWorkerAsync();
+            if (!bwDetectionSon.IsBusy)
+            bwDetectionSon.RunWorkerAsync();
+            if (!bwRechercheFinChanson.IsBusy)
             bwRechercheFinChanson.RunWorkerAsync();
             bwRechercheDebutChanson.Dispose();
         }
@@ -219,7 +259,6 @@ namespace ProjetCubic
         }
         private void bwRechercheFinChanson_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-
             bwRechercheDebutChanson.RunWorkerAsync();
             bwRechercheFinChanson.Dispose();
         }
@@ -379,6 +418,7 @@ namespace ProjetCubic
         {
             string[] sEventParams = sLigne.Split(',');
             int[] iEventParams = new int[sEventParams.Count()];
+            double dSliderLongueur=0;
             int iCPT = 0;
             foreach (string param in sEventParams)
             {
@@ -393,7 +433,8 @@ namespace ProjetCubic
                     break;
                 case 2:
                 case 6:
-                    evenement = new Slider(iEventParams[0], iEventParams[1], iEventParams[2], (byte)iEventParams[6], iEventParams[7]);
+                    double.TryParse(sEventParams[7].Replace('.', ','), out dSliderLongueur);
+                    evenement = new Slider(iEventParams[0], iEventParams[1], iEventParams[2], (byte)iEventParams[6], dSliderLongueur);
                     break;
                 case 12:
                     evenement = new Spiner(iEventParams[0], iEventParams[1], iEventParams[2], iEventParams[5]);

@@ -8,12 +8,12 @@ namespace ProjetCubic
 {
     public class Slider : Event
     {
-        private int _iLongueur;
+        private double _dLongueur;
         private byte _byAllerRetour;
-        public Slider(int iTemp, int iPositionX, int iPositionY, byte byAllerRetour, int iLongueur)
+        public Slider(int iTemp, int iPositionX, int iPositionY, byte byAllerRetour, double iLongueur)
             : base(iTemp, iPositionX, iPositionY)
         {
-            _iLongueur = iLongueur;
+            _dLongueur = iLongueur;
             _byAllerRetour = byAllerRetour;
         }
         public List<Point> Positions
@@ -27,15 +27,15 @@ namespace ProjetCubic
             }
         }
 
-        public int Longueur
+        public double Longueur
         {
             get
             {
-                return _iLongueur;
+                return _dLongueur;
             }
             set
             {
-                _iLongueur = value;
+                _dLongueur = value;
             }
         }
 
@@ -55,13 +55,13 @@ namespace ProjetCubic
             uint X = (uint)Cursor.Position.X;
             uint Y = (uint)Cursor.Position.Y;
             FrmCubic.mouse_event(FrmCubic.MOUSEEVENTF_LEFTDOWN, X, Y, 0, 0);
-            System.Threading.Thread.Sleep((int)( _byAllerRetour *((10*_iLongueur)/(FrmCubic._dSliderVelocity * 1000/FrmCubic._TempsParBattement))));
+            System.Threading.Thread.Sleep((int)( _byAllerRetour *((10*_dLongueur)/(FrmCubic._dSliderVelocity * 1000/FrmCubic._TempsParBattement))));
             FrmCubic.mouse_event(FrmCubic.MOUSEEVENTF_LEFTUP, X, Y, 0, 0);
         }
         public override void ClickOnMyPosition()
         {
             FrmCubic.mouse_event(FrmCubic.MOUSEEVENTF_LEFTDOWN, (uint)this.PositionX, (uint)this.PositionY, 0, 0);
-            System.Threading.Thread.Sleep((int)(_byAllerRetour * ((10 * _iLongueur) / (FrmCubic._dSliderVelocity * 1000 / FrmCubic._TempsParBattement))));
+            System.Threading.Thread.Sleep((int)(_byAllerRetour * ((10 * _dLongueur) / (FrmCubic._dSliderVelocity * 1000 / FrmCubic._TempsParBattement))));
             FrmCubic.mouse_event(FrmCubic.MOUSEEVENTF_LEFTUP, (uint)this.PositionX, (uint)this.PositionY, 0, 0);
         }
     }
