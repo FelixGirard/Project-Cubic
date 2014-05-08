@@ -109,7 +109,7 @@ namespace ProjetCubic
         {
             BackgroundWorker worker = sender as BackgroundWorker;
             byte byVolume = getOutputSound();
-            while (byVolume<1)
+            while (byVolume<1 && Process.GetProcessesByName("osu!").Count() > 0 && Process.GetProcessesByName("osu!").First().MainWindowTitle.Trim() != "osu!")
             {
                 Debug.WriteLine(byVolume);
                 if ((worker.CancellationPending == true))
@@ -168,7 +168,7 @@ namespace ProjetCubic
                     if (_iIndexTP <= _iNombreTP - 1 && _lstTimingPoints.ElementAt(_iIndexTP).Offset <= _lTempsDeChanson)
                     {
                         Debug.Write(_lstTimingPoints.ElementAt(_iIndexTP).Offset + "    ");
-                        if (_lstTimingPoints.ElementAt(_iIndexTP++).TempsParBattement < 0)
+                        if (_lstTimingPoints.ElementAt(_iIndexTP).TempsParBattement < 0)
                             _TempsParBattement = 100 / _lstTimingPoints.ElementAt(_iIndexTP++).TempsParBattement * -1 * _TempsParBattementBase;
                         else
                             _TempsParBattement = _lstTimingPoints.ElementAt(_iIndexTP++).TempsParBattement;
@@ -217,8 +217,8 @@ namespace ProjetCubic
                 lblPathChanson.Text = opfParcourirChanson.FileName;
             ChargerListe();
             //getosuWindowSize();
-            if (!bwDetectionSon.IsBusy)
-            bwDetectionSon.RunWorkerAsync();
+            //if (!bwDetectionSon.IsBusy)
+            //bwDetectionSon.RunWorkerAsync();
             if (!bwRechercheFinChanson.IsBusy)
             bwRechercheFinChanson.RunWorkerAsync();
             bwRechercheDebutChanson.Dispose();
@@ -247,7 +247,7 @@ namespace ProjetCubic
             sTitreChanson = sTitreFenêtre.Substring(sTitreFenêtre.IndexOf('-') + 1, sTitreFenêtre.Length - sTitreFenêtre.IndexOf('-') - 1).Trim();
             sDifficultee = sTitreChanson.Substring(sTitreChanson.IndexOf('['), sTitreChanson.Length - sTitreChanson.IndexOf('[')).Trim();
             sTitreChanson = sTitreChanson.Substring(0, sTitreChanson.IndexOf('[') - 1).Trim();
-            string[] files = Directory.GetFiles(sPathDossierChanson, sTitreChanson + "*" + sDifficultee + "*", SearchOption.AllDirectories);
+            string[] files = Directory.GetFiles(sPathDossierChanson, "*" + sTitreChanson + "*" + sDifficultee + "*", SearchOption.AllDirectories);
             if (files.Count() > 0)
             {
                 tslblStatut.Text = "La chanson " + sTitreChanson + " à été trouvée!";
